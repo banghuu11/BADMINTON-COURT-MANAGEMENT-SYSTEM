@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Dumbbell, Plus } from "lucide-react";
 import { apiFetch } from "../../services/api";
 import useAuthStore from "../../store/useAuthStore";
-import CourtModal from "../../components/venue/CourtModal.jsx";
+import CourtModal from "./CourtModal.jsx";
 
 const CourtManagement = () => {
   const { user, isAuthenticated } = useAuthStore();

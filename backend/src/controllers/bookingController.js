@@ -85,12 +85,19 @@ const createBooking = async (req, res) => {
 
     // 3. Duyệt qua mảng slots để lưu vào bảng BookingSlot
     for (const slot of slots) {
-      const { courtId, playDate, startTime, endTime, appliedPrice } = slot;
+      const {
+        courtId,
+        playDate,
+        startTime,
+        endTime,
+        appliedPrice,
+        positionIndex = 0,
+      } = slot;
 
       // Kiểm tra đúp (Double-check): Tránh trường hợp 2 người cùng submit trùng 1 giây
       const checkConflict = await client.query(
-        `SELECT fn_CheckCourtAvailability($1, $2, $3, $4) AS conflict_count`,
-        [courtId, playDate, startTime, endTime],
+        `SELECT fn_CheckCourtAvailability($1, $2, $3, $4, -1, $5) AS conflict_count`,
+        [courtId, playDate, startTime, endTime, positionIndex],
       );
       if (checkConflict.rows[0].conflict_count > 0) {
         throw new Error(
@@ -99,8 +106,8 @@ const createBooking = async (req, res) => {
       }
 
       const insertSlotQuery = `
-        INSERT INTO BookingSlot (BookingId, CourtId, PlayDate, StartTime, EndTime, AppliedPrice, SlotStatus)
-        VALUES ($1, $2, $3, $4, $5, $6, 'NotStarted')
+        INSERT INTO BookingSlot (BookingId, CourtId, PlayDate, StartTime, EndTime, AppliedPrice, SlotStatus, PositionIndex)
+        VALUES ($1, $2, $3, $4, $5, $6, 'NotStarted', $7)
       `;
       await client.query(insertSlotQuery, [
         newBooking.bookingid,
@@ -109,6 +116,7 @@ const createBooking = async (req, res) => {
         startTime,
         endTime,
         appliedPrice,
+        positionIndex,
       ]);
     }
 
@@ -436,7 +444,7 @@ const getCourtSchedule = async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT StartTime, EndTime FROM BookingSlot 
+      `SELECT StartTime, EndTime, PositionIndex FROM BookingSlot 
        WHERE CourtId = $1 AND PlayDate = $2 AND SlotStatus NOT IN ('Cancelled', 'NoShow')
        ORDER BY StartTime ASC`,
       [courtId, playDate],

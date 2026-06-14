@@ -470,6 +470,7 @@ SlotId SERIAL PRIMARY KEY,
 BookingId INT NOT NULL REFERENCES Booking(BookingId),
 CourtId INT NOT NULL REFERENCES Court(CourtId),
 PlayDate DATE NOT NULL,
+PositionIndex INT DEFAULT 0, -- 0: Toàn sân, 1-4: Vị trí ghép kèo
 StartTime TIME NOT NULL,
 EndTime TIME NOT NULL,
 DurationMinutes INT GENERATED ALWAYS AS (EXTRACT(EPOCH FROM (EndTime - StartTime))/60) STORED,
@@ -745,7 +746,7 @@ CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 -- MODULE 17: INDEXES BỔ SUNG
 -- =====================================================
 CREATE UNIQUE INDEX UX_NoOverlap
-ON BookingSlot (CourtId, PlayDate, StartTime, EndTime)
+ON BookingSlot (CourtId, PlayDate, StartTime, EndTime, PositionIndex)
 WHERE SlotStatus NOT IN ('Cancelled', 'NoShow');
 
 CREATE INDEX IDX_Slot_CourtDate ON BookingSlot (CourtId, PlayDate);
@@ -931,7 +932,7 @@ GROUP BY EXTRACT(YEAR FROM pi.PaidAt), EXTRACT(MONTH FROM pi.PaidAt);
 -- MODULE 20: FUNCTIONS / PROCEDURES
 -- =====================================================
 CREATE OR REPLACE FUNCTION fn_CheckCourtAvailability(
-p_CourtId INT, p_PlayDate DATE, p_StartTime TIME, p_EndTime TIME, p_ExcludeSlotId INT DEFAULT -1
+p_CourtId INT, p_PlayDate DATE, p_StartTime TIME, p_EndTime TIME, p_ExcludeSlotId INT DEFAULT -1, p_PositionIndex INT DEFAULT 0
 ) RETURNS INT AS $$
 DECLARE
 v_ConflictCount INT;
@@ -945,6 +946,8 @@ AND (
 (p_StartTime >= bs.StartTime AND p_StartTime < bs.EndTime)
 OR (p_EndTime > bs.StartTime AND p_EndTime <= bs.EndTime)
 OR (p_StartTime <= bs.StartTime AND p_EndTime >= bs.EndTime)
+) AND (
+bs.PositionIndex = 0 OR p_PositionIndex = 0 OR bs.PositionIndex = p_PositionIndex
 );
 RETURN v_ConflictCount;
 END;

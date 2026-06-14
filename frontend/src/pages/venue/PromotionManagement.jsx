@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Tag, Plus, Edit2, Trash2 } from "lucide-react";
 import { apiFetch } from "../../services/api";
 import useAuthStore from "../../store/useAuthStore";
-import PromotionModal from "../../components/venue/PromotionModal.jsx";
+import PromotionModal from "./PromotionModal.jsx";
 
 const PromotionManagement = () => {
   const { user, isAuthenticated } = useAuthStore();

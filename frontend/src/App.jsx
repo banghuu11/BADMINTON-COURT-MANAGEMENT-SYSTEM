@@ -7,7 +7,7 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Courts from "./pages/venue/Courts";
 import VenueDetail from "./pages/venue/VenueDetail";
-import ServiceManagement from "./pages/ServiceManagement";
+import ServiceManagement from "./pages/venue/ServiceManagement";
 import CourtBooking from "./pages/CourtBooking";
 import OwnerOnboarding from "./pages/OwnerOnboarding";
 import AdminDashboard from "./pages/AdminDashboard";

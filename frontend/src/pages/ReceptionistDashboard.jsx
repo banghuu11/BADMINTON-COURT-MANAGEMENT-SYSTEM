@@ -12,8 +12,8 @@ import {
   MapPin,
   Hash,
 } from "lucide-react";
-import AddServiceModal from "../components/reception/AddServiceModal.jsx";
-import InvoiceModal from "../components/reception/InvoiceModal.jsx";
+import AddServiceModal from "./venue/AddServiceModal.jsx";
+import InvoiceModal from "./venue/InvoiceModal.jsx";
 
 const ReceptionistDashboard = () => {
   const { user, isAuthenticated } = useAuthStore();

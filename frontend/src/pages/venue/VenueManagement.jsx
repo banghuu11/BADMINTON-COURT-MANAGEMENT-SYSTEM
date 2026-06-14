@@ -9,8 +9,8 @@ import {
 } from "lucide-react";
 import { apiFetch } from "../../services/api";
 import useAuthStore from "../../store/useAuthStore";
-import VenueModal from "../../components/venue/VenueModal.jsx";
-import VenueImageModal from "../../components/venue/VenueImageModal.jsx";
+import VenueModal from "./VenueModal.jsx";
+import VenueImageModal from "./VenueImageModal.jsx";
 
 const VenueManagement = () => {
   const { user, isAuthenticated } = useAuthStore();

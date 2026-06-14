@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Users, User, Info, Check, ArrowLeft } from "lucide-react";
 import { apiFetch } from "../services/api";
 import useAuthStore from "../store/useAuthStore";
-import TimeSlotSelector from "../components/booking/TimeSlotSelector.jsx";
-import Court3D from "../components/booking/Court3D.jsx";
+import TimeSlotSelector from "./venue/TimeSlotSelector.jsx";
+import Court3D from "./venue/Court3D.jsx";
 
 const CourtBooking = () => {
   const { courtId } = useParams();
@@ -26,15 +26,27 @@ const CourtBooking = () => {
   const slots =
     matchType === "doubles"
       ? [
-          { id: 1, top: "25%", left: "25%", label: "Team A - Trái" },
-          { id: 2, top: "25%", left: "75%", label: "Team A - Phải" },
-          { id: 3, top: "75%", left: "25%", label: "Team B - Trái" },
-          { id: 4, top: "75%", left: "75%", label: "Team B - Phải" },
+          { id: 1, top: "20%", left: "28%", label: "Team A - Trái" },
+          { id: 2, top: "20%", left: "72%", label: "Team A - Phải" },
+          { id: 3, top: "80%", left: "28%", label: "Team B - Trái" },
+          { id: 4, top: "80%", left: "72%", label: "Team B - Phải" },
         ]
       : [
-          { id: 1, top: "25%", left: "50%", label: "Người chơi 1 (Team A)" },
-          { id: 2, top: "75%", left: "50%", label: "Người chơi 2 (Team B)" },
+          { id: 1, top: "20%", left: "50%", label: "Người chơi 1 (Team A)" },
+          { id: 2, top: "80%", left: "50%", label: "Người chơi 2 (Team B)" },
         ];
+
+  // Lấy danh sách vị trí đã có người đứng từ Backend (Bỏ code mockup giả lập)
+  const occupiedSlots = selectedTimeSlot
+    ? slots.filter((s) =>
+        bookedSlots.some(
+          (b) =>
+            b.starttime.slice(0, 5) ===
+              selectedTimeSlot.starttime.slice(0, 5) &&
+            (b.positionindex === 0 || b.positionindex === s.id),
+        ),
+      )
+    : [];
 
   // Tự động tải lịch sân và các khung giờ khi đổi ngày
   useEffect(() => {
@@ -72,7 +84,7 @@ const CourtBooking = () => {
   }, [courtId, playDate]);
 
   const isSlotBooked = (pSlot) => {
-    return bookedSlots.some((bSlot) => {
+    const bookingsInSlot = bookedSlots.filter((bSlot) => {
       return (
         (pSlot.starttime >= bSlot.starttime &&
           pSlot.starttime < bSlot.endtime) ||
@@ -80,6 +92,12 @@ const CourtBooking = () => {
         (pSlot.starttime <= bSlot.starttime && pSlot.endtime >= bSlot.endtime)
       );
     });
+
+    if (bookingsInSlot.length === 0) return false;
+    if (bookingsInSlot.some((b) => b.positionindex === 0)) return true; // Có người đặt full sân
+    if (bookingsInSlot.length >= 4) return true; // Đã đủ 4 người ghép kèo
+
+    return false;
   };
 
   const handleBookCourt = async () => {
@@ -107,6 +125,7 @@ const CourtBooking = () => {
               startTime: selectedTimeSlot.starttime,
               endTime: selectedTimeSlot.endtime,
               appliedPrice: selectedTimeSlot.price,
+              positionIndex: selectedSlot.id, // Truyền vị trí đã chọn
             },
           ],
         }),
@@ -155,7 +174,10 @@ const CourtBooking = () => {
             onDateChange={setPlayDate}
             pricingSlots={pricingSlots}
             selectedTimeSlot={selectedTimeSlot}
-            onTimeSlotChange={setSelectedTimeSlot}
+            onTimeSlotChange={(slot) => {
+              setSelectedTimeSlot(slot);
+              setSelectedSlot(null); // Reset vị trí khi đổi giờ
+            }}
             isSlotBooked={isSlotBooked}
           />
 
@@ -206,7 +228,8 @@ const CourtBooking = () => {
               ) : (
                 <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-blue-800 text-sm">
                   <Info className="w-4 h-4 inline-block mr-1 -mt-0.5" /> Hãy
-                  click vào dấu (+) trên mô hình sân 3D bên phải.
+                  click vào dấu (+) trống trên mô hình sân 3D bên phải (Icon
+                  User màu đỏ là đã có người đặt).
                 </div>
               )}
 
@@ -233,6 +256,7 @@ const CourtBooking = () => {
           selectedSlot={selectedSlot}
           selectedTimeSlot={selectedTimeSlot}
           onSlotClick={setSelectedSlot}
+          occupiedSlots={occupiedSlots}
         />
       </div>
     </div>

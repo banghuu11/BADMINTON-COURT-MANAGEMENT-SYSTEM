@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { DollarSign, Plus, Clock, MapPin, Trash2 } from "lucide-react";
 import { apiFetch } from "../../services/api";
 import useAuthStore from "../../store/useAuthStore";
-import PricingModal from "../../components/venue/PricingModal.jsx";
+import PricingModal from "./PricingModal.jsx";
 
 // Component quản lý bảng giá sân
 const PricingManagement = () => {
