@@ -1,0 +1,204 @@
+const pool = require("../config/db");
+
+// [POST] /api/venues - Tạo cơ sở mới
+const createVenue = async (req, res) => {
+  const userId = req.user.userId;
+  const { venueName, address, district, city, openTime, closeTime } = req.body;
+
+  if (!venueName || !address) {
+    return res
+      .status(400)
+      .json({ error: "Vui lòng nhập tên và địa chỉ cơ sở!" });
+  }
+
+  try {
+    // Tìm OwnerId từ UserId
+    const ownerResult = await pool.query(
+      "SELECT OwnerId FROM CourtOwnerProfile WHERE UserId = $1",
+      [userId],
+    );
+    if (ownerResult.rows.length === 0) {
+      return res.status(404).json({
+        error: "Không tìm thấy hồ sơ chủ sân. Bạn cần nộp hồ sơ trước!",
+      });
+    }
+    const ownerId = ownerResult.rows[0].ownerid;
+
+    const insertQuery = `
+      INSERT INTO Venue (OwnerId, VenueName, Address, District, City, OpenTime, CloseTime)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
+    `;
+    const newVenue = await pool.query(insertQuery, [
+      ownerId,
+      venueName,
+      address,
+      district,
+      city,
+      openTime || "06:00",
+      closeTime || "23:00",
+    ]);
+
+    res
+      .status(201)
+      .json({ message: "Tạo cơ sở thành công!", venue: newVenue.rows[0] });
+  } catch (error) {
+    console.error("Lỗi createVenue:", error);
+    res
+      .status(500)
+      .json({ error: "Lỗi server khi tạo cơ sở.", details: error.message });
+  }
+};
+
+// [GET] /api/venues - Lấy danh sách cơ sở của tôi
+const getMyVenues = async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    const ownerResult = await pool.query(
+      "SELECT OwnerId FROM CourtOwnerProfile WHERE UserId = $1",
+      [userId],
+    );
+    if (ownerResult.rows.length === 0) {
+      return res.json({ message: "Chưa có cơ sở nào", venues: [] });
+    }
+    const ownerId = ownerResult.rows[0].ownerid;
+
+    const result = await pool.query("SELECT * FROM Venue WHERE OwnerId = $1", [
+      ownerId,
+    ]);
+    res.json({ message: "Lấy danh sách thành công", venues: result.rows });
+  } catch (error) {
+    console.error("Lỗi getMyVenues:", error);
+    res
+      .status(500)
+      .json({ error: "Lỗi server khi lấy cơ sở.", details: error.message });
+  }
+};
+
+// [GET] /api/venues/all - Lấy danh sách toàn bộ cơ sở (Public API)
+const getAllVenues = async (req, res) => {
+  try {
+    const query = `
+      SELECT v.*, 
+             COALESCE(ROUND(AVG(r.Rating)::numeric, 1), 5.0) as rating,
+             (SELECT ImageUrl FROM VenueImage WHERE VenueId = v.VenueId ORDER BY IsMain DESC, UploadedAt DESC LIMIT 1) as mainimage
+      FROM Venue v
+      LEFT JOIN Review r ON v.VenueId = r.VenueId AND r.Status = 'Approved'
+      WHERE v.Status = 'Active'
+      GROUP BY v.VenueId
+      ORDER BY v.CreatedAt DESC
+    `;
+    const result = await pool.query(query);
+    res.json({
+      message: "Lấy danh sách toàn bộ cơ sở thành công!",
+      venues: result.rows,
+    });
+  } catch (error) {
+    console.error("Lỗi getAllVenues:", error);
+    res.status(500).json({
+      error: "Lỗi server khi lấy danh sách cơ sở.",
+      details: error.message,
+    });
+  }
+};
+
+// [GET] /api/venues/:venueId - Lấy chi tiết 1 cơ sở
+const getVenueById = async (req, res) => {
+  const { venueId } = req.params;
+  try {
+    const query = `
+      SELECT v.*, 
+             COALESCE(ROUND(AVG(r.Rating)::numeric, 1), 5.0) as rating,
+             COUNT(r.ReviewId) as reviewscount
+      FROM Venue v
+      LEFT JOIN Review r ON v.VenueId = r.VenueId AND r.Status = 'Approved'
+      WHERE v.VenueId = $1
+      GROUP BY v.VenueId
+    `;
+    const result = await pool.query(query, [venueId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Không tìm thấy cơ sở sân." });
+    }
+    res.json({
+      message: "Lấy thông tin cơ sở thành công!",
+      venue: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Lỗi getVenueById:", error);
+    res.status(500).json({
+      error: "Lỗi server khi lấy chi tiết cơ sở.",
+      details: error.message,
+    });
+  }
+};
+
+// [POST] /api/venues/:venueId/images - Upload ảnh cho cơ sở
+const uploadVenueImage = async (req, res) => {
+  const { venueId } = req.params;
+  if (!req.file) {
+    return res.status(400).json({ error: "Không tìm thấy file tải lên!" });
+  }
+
+  // Đường dẫn tĩnh truy cập ảnh
+  const imageUrl = `http://localhost:8080/uploads/${req.file.filename}`;
+
+  try {
+    // Nếu là ảnh đầu tiên, set nó làm Main (Ảnh đại diện)
+    const checkMain = await pool.query(
+      "SELECT * FROM VenueImage WHERE VenueId = $1 AND IsMain = TRUE",
+      [venueId],
+    );
+    const isMain = checkMain.rows.length === 0;
+
+    const insertQuery = `INSERT INTO VenueImage (VenueId, ImageUrl, IsMain) VALUES ($1, $2, $3) RETURNING *`;
+    const newImage = await pool.query(insertQuery, [venueId, imageUrl, isMain]);
+
+    res
+      .status(201)
+      .json({ message: "Upload ảnh thành công!", image: newImage.rows[0] });
+  } catch (error) {
+    console.error("Lỗi uploadVenueImage:", error);
+    res
+      .status(500)
+      .json({ error: "Lỗi server khi lưu ảnh.", details: error.message });
+  }
+};
+
+// [GET] /api/venues/:venueId/images - Lấy danh sách ảnh của cơ sở
+const getVenueImages = async (req, res) => {
+  const { venueId } = req.params;
+  try {
+    const result = await pool.query(
+      "SELECT * FROM VenueImage WHERE VenueId = $1 ORDER BY IsMain DESC, UploadedAt DESC",
+      [venueId],
+    );
+    res.json({ message: "Lấy danh sách ảnh thành công!", images: result.rows });
+  } catch (error) {
+    console.error("Lỗi getVenueImages:", error);
+    res.status(500).json({
+      error: "Lỗi server khi lấy danh sách ảnh.",
+      details: error.message,
+    });
+  }
+};
+
+// [DELETE] /api/venues/images/:imageId - Xóa ảnh
+const deleteVenueImage = async (req, res) => {
+  const { imageId } = req.params;
+  try {
+    await pool.query("DELETE FROM VenueImage WHERE ImageId = $1", [imageId]);
+    res.json({ message: "Đã xóa ảnh thành công!" });
+  } catch (error) {
+    console.error("Lỗi deleteVenueImage:", error);
+    res.status(500).json({ error: "Lỗi xóa ảnh." });
+  }
+};
+
+module.exports = {
+  createVenue,
+  getMyVenues,
+  getAllVenues,
+  getVenueById,
+  uploadVenueImage,
+  getVenueImages,
+  deleteVenueImage,
+};
