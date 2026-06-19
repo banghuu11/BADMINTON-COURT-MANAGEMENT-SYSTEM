@@ -121,7 +121,7 @@ const getProfile = async (req, res) => {
     const userId = req.user.userId;
 
     const result = await pool.query(
-      `SELECT UserId, Username, FullName, PhoneNumber, Email, RoleId, AvatarUrl, IsActive
+      `SELECT UserId, Username, FullName, PhoneNumber, Email, RoleId, AvatarUrl, IsActive, SkillLevel
        FROM AppUser WHERE UserId = $1`,
       [userId],
     );

@@ -127,7 +127,23 @@ const createBooking = async (req, res) => {
   } catch (error) {
     await client.query("ROLLBACK"); // Nếu có lỗi (hoặc trùng lịch), hủy bỏ toàn bộ thay đổi
     console.error("Lỗi createBooking:", error);
-    res.status(500).json({ error: "Lỗi khi đặt sân.", details: error.message });
+
+    // Bắt lỗi từ Database Constraint (Trường hợp 2 người submit cùng lúc ở cấp độ miliseconds)
+    if (error.code === "23505" && error.constraint === "ux_nooverlap") {
+      return res.status(409).json({
+        error:
+          "Rất tiếc, khung giờ bạn chọn vừa bị người khác đặt mất. Vui lòng tải lại trang và chọn giờ khác!",
+      });
+    }
+
+    // Bắt lỗi trùng lịch do fn_CheckCourtAvailability phát hiện và quăng ra
+    if (error.message && error.message.includes("vừa bị người khác đặt")) {
+      return res.status(409).json({ error: error.message });
+    }
+
+    res
+      .status(500)
+      .json({ error: "Lỗi hệ thống khi đặt sân.", details: error.message });
   } finally {
     client.release(); // Trả client về lại cho pool
   }
@@ -151,7 +167,8 @@ const getMyBookings = async (req, res) => {
                      'startTime', bs.StartTime,
                      'endTime', bs.EndTime,
                      'slotStatus', bs.SlotStatus,
-                     'appliedPrice', bs.AppliedPrice
+                     'appliedPrice', bs.AppliedPrice,
+                     'positionIndex', bs.PositionIndex
                  )
              ) as slots
       FROM Booking b
@@ -414,7 +431,7 @@ const getOpenMatches = async (req, res) => {
   try {
     const query = `
       SELECT w.WaitId, w.PlayDate, w.StartTime, w.EndTime, 
-             u.FullName, u.AvatarUrl, c.CourtName, v.VenueName
+             u.FullName, u.AvatarUrl, u.SkillLevel, c.CourtId, c.CourtName, v.VenueName, v.Address
       FROM WaitingList w
       JOIN AppUser u ON w.CustomerId = u.UserId
       JOIN Court c ON w.CourtId = c.CourtId
@@ -433,6 +450,72 @@ const getOpenMatches = async (req, res) => {
   }
 };
 
+// [POST] /api/booking/matches - Tạo yêu cầu tìm bạn giao lưu
+const createMatch = async (req, res) => {
+  const customerId = req.user.userId;
+  const { courtId, playDate, startTime, endTime } = req.body;
+
+  try {
+    const insertQuery = `
+      INSERT INTO WaitingList (CustomerId, CourtId, PlayDate, StartTime, EndTime, Status)
+      VALUES ($1, $2, $3, $4, $5, 'Waiting') RETURNING *
+    `;
+    const newMatch = await pool.query(insertQuery, [
+      customerId,
+      courtId,
+      playDate,
+      startTime,
+      endTime,
+    ]);
+
+    res.status(201).json({
+      message: "Đã tạo yêu cầu giao lưu thành công!",
+      match: newMatch.rows[0],
+    });
+  } catch (error) {
+    console.error("Lỗi createMatch:", error);
+    res.status(500).json({ error: "Lỗi server khi đăng tin giao lưu." });
+  }
+};
+
+// [POST] /api/booking/matches/:waitId/join - Tham gia giao lưu
+const joinMatch = async (req, res) => {
+  const { waitId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const checkMatch = await pool.query(
+      "SELECT * FROM WaitingList WHERE WaitId = $1 AND Status = 'Waiting'",
+      [waitId],
+    );
+    if (checkMatch.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Trận đấu không tồn tại hoặc đã đủ người!" });
+    }
+    if (checkMatch.rows[0].customerid === userId) {
+      return res
+        .status(400)
+        .json({ error: "Bạn không thể tham gia trận đấu do chính mình tạo!" });
+    }
+
+    await pool.query(
+      "UPDATE WaitingList SET Status = 'Matched' WHERE WaitId = $1",
+      [waitId],
+    );
+
+    const creator = await pool.query(
+      "SELECT FullName, PhoneNumber FROM AppUser WHERE UserId = $1",
+      [checkMatch.rows[0].customerid],
+    );
+
+    res.json({ message: "Tham gia thành công!", contact: creator.rows[0] });
+  } catch (error) {
+    console.error("Lỗi joinMatch:", error);
+    res.status(500).json({ error: "Lỗi server khi tham gia giao lưu." });
+  }
+};
+
 // [GET] /api/booking/court-schedule - Lấy lịch đã đặt của 1 sân trong 1 ngày
 const getCourtSchedule = async (req, res) => {
   const { courtId, playDate } = req.query;
@@ -444,9 +527,12 @@ const getCourtSchedule = async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT StartTime, EndTime, PositionIndex FROM BookingSlot 
-       WHERE CourtId = $1 AND PlayDate = $2 AND SlotStatus NOT IN ('Cancelled', 'NoShow')
-       ORDER BY StartTime ASC`,
+      `SELECT bs.StartTime, bs.EndTime, bs.PositionIndex, u.AvatarUrl, u.FullName, u.PhoneNumber, b.GuestName, b.GuestPhone 
+       FROM BookingSlot bs 
+       JOIN Booking b ON bs.BookingId = b.BookingId
+       LEFT JOIN AppUser u ON b.CustomerId = u.UserId
+       WHERE bs.CourtId = $1 AND bs.PlayDate = $2 AND bs.SlotStatus NOT IN ('Cancelled', 'NoShow')
+       ORDER BY bs.StartTime ASC`,
       [courtId, playDate],
     );
     res.json({ message: "Lấy lịch sân thành công", bookedSlots: result.rows });
@@ -463,7 +549,7 @@ const getVenueBookingsToday = async (req, res) => {
 
   try {
     const query = `
-      SELECT bs.SlotId, bs.PlayDate, bs.StartTime, bs.EndTime, bs.SlotStatus, bs.AppliedPrice,
+      SELECT bs.SlotId, bs.PlayDate, bs.StartTime, bs.EndTime, bs.SlotStatus, bs.AppliedPrice, bs.PositionIndex,
              b.BookingId, b.BookingCode, b.GuestName, b.GuestPhone, b.BookingStatus,
              c.CourtName, u.FullName as CustomerName, u.PhoneNumber as CustomerPhone
       FROM BookingSlot bs
@@ -495,6 +581,8 @@ module.exports = {
   cancelBooking,
   addServiceToBooking,
   getOpenMatches,
+  createMatch,
+  joinMatch,
   getCourtSchedule,
   getVenueBookingsToday,
 };
