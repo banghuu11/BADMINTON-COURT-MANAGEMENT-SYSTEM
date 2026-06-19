@@ -3,18 +3,13 @@ import { Tag, X, Check } from "lucide-react";
 const PromotionModal = ({
   isOpen,
   onClose,
-  formData,
-  setFormData,
+  formRegister,
   onSubmit,
+  errors,
   isEditing,
   saving,
 }) => {
   if (!isOpen) return null;
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
 
   return (
     <div className="fixed inset-0 bg-[#0b1c30]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -39,13 +34,15 @@ const PromotionModal = ({
             </label>
             <input
               type="text"
-              name="promotionName"
-              value={formData.promotionName}
-              onChange={handleChange}
-              required
+              {...formRegister("promotionName")}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
               placeholder="VD: Khuyến mãi khai trương..."
             />
+            {errors.promotionName && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.promotionName.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -53,12 +50,15 @@ const PromotionModal = ({
               Mô tả
             </label>
             <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
+              {...formRegister("description")}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
               rows={3}
             ></textarea>
+            {errors.description && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.description.message}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -67,14 +67,17 @@ const PromotionModal = ({
                 Loại giảm giá
               </label>
               <select
-                name="discountType"
-                value={formData.discountType}
-                onChange={handleChange}
+                {...formRegister("discountType")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
               >
                 <option value="Percent">Phần trăm (%)</option>
                 <option value="FixedAmount">Số tiền (VNĐ)</option>
               </select>
+              {errors.discountType && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.discountType.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-slate-700 text-sm font-bold mb-1.5">
@@ -82,12 +85,14 @@ const PromotionModal = ({
               </label>
               <input
                 type="number"
-                name="discountValue"
-                value={formData.discountValue}
-                onChange={handleChange}
-                required
+                {...formRegister("discountValue")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
               />
+              {errors.discountValue && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.discountValue.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -98,11 +103,14 @@ const PromotionModal = ({
               </label>
               <input
                 type="number"
-                name="minOrderAmount"
-                value={formData.minOrderAmount}
-                onChange={handleChange}
+                {...formRegister("minOrderAmount")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
               />
+              {errors.minOrderAmount && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.minOrderAmount.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-slate-700 text-sm font-bold mb-1.5">
@@ -110,11 +118,14 @@ const PromotionModal = ({
               </label>
               <input
                 type="number"
-                name="maxDiscount"
-                value={formData.maxDiscount}
-                onChange={handleChange}
+                {...formRegister("maxDiscount")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
               />
+              {errors.maxDiscount && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.maxDiscount.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -125,12 +136,14 @@ const PromotionModal = ({
               </label>
               <input
                 type="datetime-local"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleChange}
-                required
+                {...formRegister("startDate")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
               />
+              {errors.startDate && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.startDate.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-slate-700 text-sm font-bold mb-1.5">
@@ -138,12 +151,14 @@ const PromotionModal = ({
               </label>
               <input
                 type="datetime-local"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleChange}
-                required
+                {...formRegister("endDate")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
               />
+              {errors.endDate && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.endDate.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-slate-700 text-sm font-bold mb-1.5">
@@ -151,11 +166,14 @@ const PromotionModal = ({
               </label>
               <input
                 type="number"
-                name="usageLimit"
-                value={formData.usageLimit}
-                onChange={handleChange}
+                {...formRegister("usageLimit")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
               />
+              {errors.usageLimit && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.usageLimit.message}
+                </p>
+              )}
             </div>
           </div>
 

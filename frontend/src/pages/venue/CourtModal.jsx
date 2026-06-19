@@ -3,17 +3,12 @@ import { Dumbbell, X, Check } from "lucide-react";
 const CourtModal = ({
   isOpen,
   onClose,
-  formData,
-  setFormData,
+  formRegister,
+  errors,
   onSubmit,
   saving,
 }) => {
   if (!isOpen) return null;
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
-  };
 
   return (
     <div className="fixed inset-0 bg-[#0b1c30]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -37,13 +32,15 @@ const CourtModal = ({
             </label>
             <input
               type="text"
-              name="courtName"
-              value={formData.courtName}
-              onChange={handleChange}
-              required
+              {...formRegister("courtName")}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
               placeholder="VD: Sân số 1..."
             />
+            {errors.courtName && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.courtName.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -52,9 +49,7 @@ const CourtModal = ({
             </label>
             <input
               type="text"
-              name="courtCode"
-              value={formData.courtCode}
-              onChange={handleChange}
+              {...formRegister("courtCode")}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
               placeholder="VD: S1"
             />
@@ -67,9 +62,7 @@ const CourtModal = ({
               </label>
               <input
                 type="text"
-                name="surfaceType"
-                value={formData.surfaceType}
-                onChange={handleChange}
+                {...formRegister("surfaceType")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
                 placeholder="VD: PVC 4.5mm"
               />
@@ -78,9 +71,7 @@ const CourtModal = ({
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  name="isIndoor"
-                  checked={formData.isIndoor}
-                  onChange={handleChange}
+                  {...formRegister("isIndoor")}
                   className="w-5 h-5 rounded text-primary focus:ring-primary"
                 />
                 <span className="text-sm font-bold text-slate-700">

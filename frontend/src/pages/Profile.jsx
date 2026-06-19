@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { User, Mail, Phone, Calendar, Clock, LogOut, Star } from "lucide-react";
 import { apiFetch } from "../services/api";
 import useAuthStore from "../store/useAuthStore";
-import ReviewModal from "./venue/ReviewModal.jsx";
+import ReviewModal from "../components/profile/ReviewModal.jsx";
 
 const Profile = () => {
   const user = useAuthStore((state) => state.user);

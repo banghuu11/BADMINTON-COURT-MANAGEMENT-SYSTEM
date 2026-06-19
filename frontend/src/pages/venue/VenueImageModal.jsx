@@ -1,71 +1,14 @@
-import { useState, useEffect } from "react";
 import { Image as ImageIcon, X, Trash2, Upload } from "lucide-react";
-import { apiFetch } from "../../services/api";
+import { useVenueImages } from "../../hooks/useVenueImages";
 
 const VenueImageModal = ({ isOpen, onClose, venue }) => {
-  const [images, setImages] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    if (isOpen && venue) {
-      const fetchImages = async () => {
-        try {
-          setLoading(true);
-          const data = await apiFetch(`/venues/${venue.venueid}/images`);
-          setImages(data.images || []);
-        } catch (err) {
-          console.error("Lỗi lấy ảnh:", err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchImages();
-    }
-  }, [isOpen, venue]);
-
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const token =
-      localStorage.getItem("token") || sessionStorage.getItem("token");
-
-    try {
-      setUploading(true);
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const response = await fetch(
-        `http://localhost:8080/api/venues/${venue.venueid}/images`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        },
-      );
-
-      if (!response.ok) throw new Error("Upload thất bại");
-
-      const data = await response.json();
-      setImages([data.image, ...images]);
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setUploading(false);
-    }
-  };
+  const { images, isLoading, handleUpload, deleteMutation } = useVenueImages(
+    venue?.venueid,
+  );
 
   const handleDelete = async (imageId) => {
     if (!window.confirm("Bạn có chắc muốn xóa ảnh này?")) return;
-    try {
-      await apiFetch(`/venues/images/${imageId}`, { method: "DELETE" });
-      setImages(images.filter((img) => img.imageid !== imageId));
-    } catch (err) {
-      alert(err.message);
-    }
+    deleteMutation.mutate(imageId);
   };
 
   if (!isOpen) return null;
@@ -91,7 +34,9 @@ const VenueImageModal = ({ isOpen, onClose, venue }) => {
             <div className="flex flex-col items-center space-y-2">
               <Upload className="w-8 h-8 text-slate-400" />
               <span className="font-medium text-slate-600">
-                {uploading ? "Đang tải lên..." : "Nhấn để chọn ảnh tải lên"}
+                {deleteMutation.isPending
+                  ? "Đang tải lên..."
+                  : "Nhấn để chọn ảnh tải lên"}
               </span>
             </div>
             <input
@@ -100,13 +45,13 @@ const VenueImageModal = ({ isOpen, onClose, venue }) => {
               className="hidden"
               accept="image/*"
               onChange={handleUpload}
-              disabled={uploading}
+              disabled={deleteMutation.isPending}
             />
           </label>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 min-h-[100px]">
+          {isLoading ? (
             <p className="col-span-full text-center text-slate-500 py-4">
               Đang tải ảnh...
             </p>

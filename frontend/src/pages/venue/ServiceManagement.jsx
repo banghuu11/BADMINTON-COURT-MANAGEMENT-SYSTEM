@@ -1,163 +1,23 @@
-import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Package, Check, X } from "lucide-react";
-import { apiFetch } from "../../services/api";
-import useAuthStore from "../../store/useAuthStore";
-import { useNavigate } from "react-router-dom";
+import { useServiceManagement } from "../../hooks/useServiceManagement";
 
 const ServiceManagement = () => {
-  const { user, isAuthenticated } = useAuthStore();
-  const navigate = useNavigate();
-
-  const [venues, setVenues] = useState([]);
-  const [selectedVenueId, setSelectedVenueId] = useState("");
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingService, setEditingService] = useState(null);
-
-  const [formData, setFormData] = useState({
-    serviceName: "",
-    unitPrice: "",
-    stockQuantity: "",
-    unit: "Cái",
-    isActive: true,
-  });
-
-  // 1. Tải danh sách cơ sở của Chủ sân
-  useEffect(() => {
-    const roleId = user?.roleid || user?.roleId;
-    // Nếu không phải Admin (1) hoặc Chủ sân (2) thì từ chối truy cập
-    if (!isAuthenticated || (roleId !== 1 && roleId !== 2)) {
-      alert("Truy cập bị từ chối! Trang này dành cho Quản lý cơ sở.");
-      navigate("/");
-      return;
-    }
-
-    const fetchInitialData = async () => {
-      try {
-        setLoading(true);
-        const venueData = await apiFetch("/venues"); // Lấy cơ sở của chính mình
-        const userVenues = venueData.venues || [];
-        setVenues(userVenues);
-
-        if (userVenues.length > 0) {
-          setSelectedVenueId(userVenues[0].venueid);
-        }
-      } catch (err) {
-        setError("Không thể tải danh sách cơ sở.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isAuthenticated) fetchInitialData();
-  }, [isAuthenticated, navigate, user]);
-
-  // 2. Tải danh sách dịch vụ khi chọn cơ sở
-  useEffect(() => {
-    const fetchServices = async () => {
-      if (!selectedVenueId) return;
-      try {
-        setLoading(true);
-        const data = await apiFetch(`/services/venue/${selectedVenueId}`);
-        setServices(data.services || []);
-      } catch (err) {
-        console.error("Lỗi lấy danh sách dịch vụ:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchServices();
-  }, [selectedVenueId]);
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
-  };
-
-  const openAddModal = () => {
-    setEditingService(null);
-    setFormData({
-      serviceName: "",
-      unitPrice: "",
-      stockQuantity: "",
-      unit: "Cái",
-      isActive: true,
-    });
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (service) => {
-    setEditingService(service);
-    setFormData({
-      serviceName: service.servicename,
-      unitPrice: service.unitprice,
-      stockQuantity: service.stockquantity,
-      unit: service.unit,
-      isActive: service.isactive,
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingService) {
-        // Sửa
-        await apiFetch(`/services/${editingService.serviceid}`, {
-          method: "PUT",
-          body: JSON.stringify(formData),
-        });
-        alert("Cập nhật sản phẩm thành công!");
-      } else {
-        // Thêm mới
-        await apiFetch("/services", {
-          method: "POST",
-          body: JSON.stringify({ ...formData, venueId: selectedVenueId }),
-        });
-        alert("Thêm sản phẩm thành công!");
-      }
-      setIsModalOpen(false);
-
-      // Cập nhật lại danh sách
-      const data = await apiFetch(`/services/venue/${selectedVenueId}`);
-      setServices(data.services || []);
-    } catch (err) {
-      alert(err.message || "Có lỗi xảy ra");
-    }
-  };
-
-  const handleDelete = async (serviceId) => {
-    if (
-      !window.confirm(
-        "Bạn có chắc chắn muốn ngừng bán (vô hiệu hóa) sản phẩm này không?",
-      )
-    )
-      return;
-    try {
-      await apiFetch(`/services/${serviceId}`, { method: "DELETE" });
-      alert("Đã ngừng bán sản phẩm!");
-      const data = await apiFetch(`/services/venue/${selectedVenueId}`);
-      setServices(data.services || []);
-    } catch (err) {
-      alert(err.message || "Có lỗi xảy ra");
-    }
-  };
-
-  if (loading && venues.length === 0)
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500">
-        Đang tải dữ liệu...
-      </div>
-    );
-  if (error)
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-red-500">
-        {error}
-      </div>
-    );
+  const {
+    venues,
+    selectedVenueId,
+    setSelectedVenueId,
+    services,
+    isLoading,
+    isModalOpen,
+    editingId,
+    formRegister,
+    handleSubmit,
+    errors,
+    openModal,
+    handleDelete,
+    saving,
+    onClose,
+  } = useServiceManagement();
 
   return (
     <div className="max-w-7xl mx-auto px-5 py-8 animate-fade-in">
@@ -185,7 +45,7 @@ const ServiceManagement = () => {
             {venues.length === 0 && <option value="">Chưa có cơ sở nào</option>}
           </select>
           <button
-            onClick={openAddModal}
+            onClick={() => openModal()}
             disabled={!selectedVenueId}
             className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 shadow-sm ${!selectedVenueId ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-[#0b1c30] text-primary hover:bg-[#1a2c42]"}`}
           >
@@ -196,7 +56,7 @@ const ServiceManagement = () => {
 
       {/* Danh sách Dịch vụ */}
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-        {loading ? (
+        {isLoading ? (
           <div className="p-8 text-center text-slate-500">
             Đang tải danh sách dịch vụ...
           </div>
@@ -255,7 +115,7 @@ const ServiceManagement = () => {
                     </td>
                     <td className="p-4 text-right space-x-2 whitespace-nowrap">
                       <button
-                        onClick={() => openEditModal(service)}
+                        onClick={() => openModal(service)}
                         className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200 inline-block"
                         title="Sửa"
                       >
@@ -285,7 +145,7 @@ const ServiceManagement = () => {
               Cơ sở này chưa có sản phẩm hoặc dịch vụ nào để bán.
             </p>
             <button
-              onClick={openAddModal}
+              onClick={() => openModal()}
               disabled={!selectedVenueId}
               className="bg-primary text-[#0b1c30] px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[#a8d800] transition-colors inline-flex items-center gap-2 shadow-sm"
             >
@@ -299,13 +159,13 @@ const ServiceManagement = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-[#0b1c30]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl animate-fade-in">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 ">
               <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                 <Package className="text-primary w-6 h-6" />{" "}
-                {editingService ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}
+                {editingId ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}
               </h2>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={onClose}
                 className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full"
               >
                 <X className="w-5 h-5" />
@@ -319,13 +179,15 @@ const ServiceManagement = () => {
                 </label>
                 <input
                   type="text"
-                  name="serviceName"
-                  value={formData.serviceName}
-                  onChange={handleInputChange}
-                  required
+                  {...formRegister("serviceName")}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
                   placeholder="VD: Nước suối Aquafina"
                 />
+                {errors.serviceName && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.serviceName.message}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -335,14 +197,16 @@ const ServiceManagement = () => {
                   </label>
                   <input
                     type="number"
-                    name="unitPrice"
-                    value={formData.unitPrice}
-                    onChange={handleInputChange}
-                    required
+                    {...formRegister("unitPrice")}
                     min="0"
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
                     placeholder="10000"
                   />
+                  {errors.unitPrice && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.unitPrice.message}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-slate-700 text-sm font-bold mb-1.5">
@@ -350,13 +214,16 @@ const ServiceManagement = () => {
                   </label>
                   <input
                     type="number"
-                    name="stockQuantity"
-                    value={formData.stockQuantity}
-                    onChange={handleInputChange}
+                    {...formRegister("stockQuantity")}
                     min="0"
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
                     placeholder="100"
                   />
+                  {errors.stockQuantity && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.stockQuantity.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -367,9 +234,7 @@ const ServiceManagement = () => {
                   </label>
                   <input
                     type="text"
-                    name="unit"
-                    value={formData.unit}
-                    onChange={handleInputChange}
+                    {...formRegister("unit")}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
                     placeholder="Chai, Lon, Quả..."
                   />
@@ -378,9 +243,7 @@ const ServiceManagement = () => {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
-                      name="isActive"
-                      checked={formData.isActive}
-                      onChange={handleInputChange}
+                      {...formRegister("isActive")}
                       className="w-5 h-5 rounded text-primary focus:ring-primary"
                     />
                     <span className="text-sm font-bold text-slate-700">
@@ -393,16 +256,18 @@ const ServiceManagement = () => {
               <div className="pt-4 border-t border-slate-100 flex justify-end gap-3 mt-6">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={onClose}
                   className="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl font-bold text-sm text-[#0b1c30] bg-primary hover:bg-[#a8d800] transition-colors shadow-lg shadow-primary/20 flex items-center gap-2"
+                  disabled={saving}
+                  className={`px-5 py-2.5 rounded-xl font-bold text-sm text-[#0b1c30] bg-primary hover:bg-[#a8d800] transition-colors shadow-lg shadow-primary/20 flex items-center gap-2 ${saving ? "opacity-50" : ""}`}
                 >
-                  <Check className="w-4 h-4" /> Lưu thông tin
+                  <Check className="w-4 h-4" />{" "}
+                  {saving ? "Đang lưu..." : "Lưu thông tin"}
                 </button>
               </div>
             </form>

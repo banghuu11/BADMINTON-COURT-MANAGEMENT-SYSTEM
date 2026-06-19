@@ -45,7 +45,7 @@ const ServiceManagement = () => {
         if (userVenues.length > 0) {
           setSelectedVenueId(userVenues[0].venueid);
         }
-      } catch (err) {
+      } catch {
         setError("Không thể tải danh sách cơ sở.");
       } finally {
         setLoading(false);

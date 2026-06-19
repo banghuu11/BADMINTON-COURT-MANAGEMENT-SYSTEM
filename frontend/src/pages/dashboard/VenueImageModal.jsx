@@ -11,27 +11,26 @@ import { apiFetch } from "../../services/api";
 
 const VenueImageModal = ({ isOpen, onClose, venue }) => {
   const [images, setImages] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    if (isOpen && venue) {
-      fetchImages();
-    }
-  }, [isOpen, venue]);
+    if (!isOpen || !venue) return undefined;
 
-  const fetchImages = async () => {
-    setLoading(true);
-    try {
-      const data = await apiFetch(`/venues/${venue.venueid}/images`);
-      setImages(data.images || []);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    let active = true;
+
+    apiFetch(`/venues/${venue.venueid}/images`)
+      .then((data) => {
+        if (active) setImages(data.images || []);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isOpen, venue]);
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -41,12 +40,13 @@ const VenueImageModal = ({ isOpen, onClose, venue }) => {
     formData.append("image", file); // Phải khớp với tên biến upload.single("image") ở backend
 
     setUploading(true);
-    try {
-      await apiFetch(`/venues/${venue.venueid}/images`, {
-        method: "POST",
-        body: formData, // Truyền thẳng đối tượng FormData
-      });
-      fetchImages();
+      try {
+        await apiFetch(`/venues/${venue.venueid}/images`, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await apiFetch(`/venues/${venue.venueid}/images`);
+        setImages(data.images || []);
     } catch (error) {
       alert(error.message || "Lỗi tải ảnh lên.");
     } finally {

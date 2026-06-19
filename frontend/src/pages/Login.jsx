@@ -1,47 +1,27 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import useAuthStore from "../store/useAuthStore";
+import { Link } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import { useLogin } from "../hooks/useLogin";
 
 const Login = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const login = useAuthStore((state) => state.login);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      await login(username, password);
-      navigate("/"); // Chuyển về trang chủ sau khi đăng nhập thành công
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { formRegister, handleSubmit, errors, apiError, loading } = useLogin();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Đăng nhập CourtSync
+    <div className="min-h-screen flex items-center justify-center bg-[#0b1c30] p-4">
+      <div className="max-w-md w-full bg-[#1a2c42]/60 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
+        <h2 className="text-3xl font-bold text-center text-white mb-6">
+          Đăng nhập
         </h2>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+        {apiError && (
+          <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl mb-4 text-sm">
+            {apiError}
           </div>
         )}
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
-              className="block text-gray-700 font-medium mb-2"
+              className="block text-slate-300 font-bold text-xs uppercase tracking-wider mb-2"
               htmlFor="username"
             >
               Tên đăng nhập
@@ -49,17 +29,20 @@ const Login = () => {
             <input
               type="text"
               id="username"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              {...formRegister("username")}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white transition-colors"
               placeholder="Nhập username..."
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
             />
+            {errors.username && (
+              <p className="text-red-400 text-xs mt-1">
+                {errors.username.message}
+              </p>
+            )}
           </div>
 
           <div className="mb-6">
             <label
-              className="block text-gray-700 font-medium mb-2"
+              className="block text-slate-300 font-bold text-xs uppercase tracking-wider mb-2"
               htmlFor="password"
             >
               Mật khẩu
@@ -67,29 +50,38 @@ const Login = () => {
             <input
               type="password"
               id="password"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              {...formRegister("password")}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white transition-colors"
               placeholder="Nhập mật khẩu..."
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
             />
+            {errors.password && (
+              <p className="text-red-400 text-xs mt-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200 ${
+            className={`w-full bg-primary text-[#0b1c30] font-bold py-3 px-4 rounded-xl hover:bg-[#a8d800] transition-all duration-200 shadow-lg shadow-primary/20 ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            {loading ? "Đang xử lý..." : "Đăng Nhập"}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" /> Đang đăng nhập...
+              </span>
+            ) : (
+              "Đăng Nhập"
+            )}
           </button>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-sm text-slate-400">
             Chưa có tài khoản?{" "}
             <Link
               to="/register"
-              className="text-blue-600 font-bold hover:underline"
+              className="text-primary font-bold hover:underline"
             >
               Đăng ký ngay
             </Link>

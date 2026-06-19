@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   DollarSign,
   MapPin,
@@ -9,60 +8,20 @@ import {
   TrendingUp,
   AlertCircle,
 } from "lucide-react";
-import { apiFetch } from "../services/api";
-import useAuthStore from "../store/useAuthStore";
+import { useOwnerDashboard } from "../hooks/useOwnerDashboard";
 
 const OwnerDashboard = () => {
-  const { user, isAuthenticated } = useAuthStore();
-  const navigate = useNavigate();
-
-  const currentDate = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(
-    currentDate.getMonth() + 1,
-  );
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [noProfile, setNoProfile] = useState(false);
-
-  // Kiểm tra quyền Chủ sân (RoleId = 2)
-  useEffect(() => {
-    const roleId = user?.roleid || user?.roleId;
-    if (!isAuthenticated || roleId !== 2) {
-      alert("Truy cập bị từ chối! Trang này dành cho Chủ sân.");
-      navigate("/");
-    }
-  }, [isAuthenticated, user, navigate]);
-
-  // Lấy dữ liệu thống kê
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const data = await apiFetch(
-          `/dashboard/owner?month=${selectedMonth}&year=${selectedYear}`,
-        );
-        setDashboardData(data);
-        setNoProfile(false);
-      } catch (err) {
-        if (err.message && err.message.includes("Không tìm thấy hồ sơ")) {
-          setNoProfile(true);
-        } else {
-          setError(err.message || "Không thể tải dữ liệu thống kê.");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const roleId = user?.roleid || user?.roleId;
-    if (isAuthenticated && roleId === 2) {
-      fetchDashboard();
-    }
-  }, [isAuthenticated, user, selectedMonth, selectedYear]);
+  const {
+    selectedMonth,
+    setSelectedMonth,
+    selectedYear,
+    setSelectedYear,
+    dashboardData,
+    isLoading: loading,
+    error,
+    noProfile,
+    currentDate,
+  } = useOwnerDashboard();
 
   // Render nếu chưa nộp hồ sơ chủ sân
   if (noProfile) {

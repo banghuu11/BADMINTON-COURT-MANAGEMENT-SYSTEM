@@ -11,9 +11,11 @@ import {
   LogOut,
   MapPin,
   Hash,
+  Coffee,
+  Receipt,
 } from "lucide-react";
-import AddServiceModal from "./venue/AddServiceModal.jsx";
-import InvoiceModal from "./venue/InvoiceModal.jsx";
+import AddServiceModal from "../components/reception/AddServiceModal.jsx";
+import InvoiceModal from "../components/reception/InvoiceModal.jsx";
 
 const ReceptionistDashboard = () => {
   const { user, isAuthenticated } = useAuthStore();
@@ -39,8 +41,6 @@ const ReceptionistDashboard = () => {
 
   // State cho Modal Thanh toán
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
-  const [selectedBookingForInvoice, setSelectedBookingForInvoice] =
-    useState(null);
   const [invoiceData, setInvoiceData] = useState(null);
   const [paymentForm, setPaymentForm] = useState({
     amount: 0,
@@ -181,7 +181,6 @@ const ReceptionistDashboard = () => {
       );
       const inv = res.invoice;
       setInvoiceData(inv);
-      setSelectedBookingForInvoice(slot);
       setPaymentForm({
         amount: Number(inv.totalamount) - Number(inv.paidamount || 0),
         paymentMethod: "Cash",

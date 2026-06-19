@@ -1,102 +1,31 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Dumbbell, Plus } from "lucide-react";
-import { apiFetch } from "../../services/api";
-import useAuthStore from "../../store/useAuthStore";
 import CourtModal from "./CourtModal.jsx";
+import { useCourtManagement } from "../../hooks/useCourtManagement";
 
 const CourtManagement = () => {
-  const { user, isAuthenticated } = useAuthStore();
-  const navigate = useNavigate();
-
-  const [venues, setVenues] = useState([]);
-  const [selectedVenueId, setSelectedVenueId] = useState("");
-  const [courts, setCourts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({
-    courtName: "",
-    courtCode: "",
-    surfaceType: "PVC 4.5mm",
-    isIndoor: true,
-  });
-
-  useEffect(() => {
-    const roleId = user?.roleid || user?.roleId;
-    if (!isAuthenticated || (roleId !== 1 && roleId !== 2)) {
-      alert("Trang này chỉ dành cho Admin và Chủ sân.");
-      navigate("/");
-      return;
-    }
-
-    const init = async () => {
-      try {
-        const venueData = await apiFetch("/venues");
-        setVenues(venueData.venues || []);
-        if (venueData.venues?.length > 0)
-          setSelectedVenueId(venueData.venues[0].venueid);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    init();
-  }, [isAuthenticated, user, navigate]);
-
-  useEffect(() => {
-    const fetchCourts = async () => {
-      if (!selectedVenueId) return;
-      try {
-        setLoading(true);
-        const data = await apiFetch(`/courts/venue/${selectedVenueId}`);
-        setCourts(data.courts || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCourts();
-  }, [selectedVenueId]);
-
-  const openModal = () => {
-    setFormData({
-      courtName: "",
-      courtCode: "",
-      surfaceType: "PVC 4.5mm",
-      isIndoor: true,
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await apiFetch("/courts", {
-        method: "POST",
-        body: JSON.stringify({ ...formData, venueId: selectedVenueId }),
-      });
-      setIsModalOpen(false);
-      const data = await apiFetch(`/courts/venue/${selectedVenueId}`);
-      setCourts(data.courts || []);
-      alert("Thêm sân thành công!");
-    } catch (err) {
-      alert(err.message || "Lỗi lưu sân");
-    } finally {
-      setSaving(false);
-    }
-  };
+  const {
+    venues,
+    selectedVenueId,
+    setSelectedVenueId,
+    courts,
+    isLoading,
+    isModalOpen,
+    setIsModalOpen,
+    formRegister,
+    errors,
+    saving,
+    openModal,
+    handleSubmit,
+  } = useCourtManagement();
 
   return (
     <div className="max-w-7xl mx-auto px-5 py-8 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">
             Quản lý Sân
           </h1>
-          <p className="text-slate-500 mt-1 text-sm">
+          <p className="text-slate-400 mt-1 text-sm">
             Thêm sân mới vào cơ sở của bạn.
           </p>
         </div>
@@ -115,7 +44,7 @@ const CourtManagement = () => {
           <button
             onClick={openModal}
             disabled={!selectedVenueId}
-            className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 ${!selectedVenueId ? "bg-slate-200 text-slate-400" : "bg-[#0b1c30] text-primary hover:bg-[#1a2c42]"}`}
+            className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 ${!selectedVenueId ? "bg-slate-200 text-slate-400" : "bg-primary text-[#0b1c30] hover:bg-[#a8d800] shadow-lg shadow-primary/20"}`}
           >
             <Plus className="w-4 h-4" /> Thêm sân
           </button>
@@ -123,7 +52,7 @@ const CourtManagement = () => {
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-        {loading ? (
+        {isLoading ? (
           <div className="p-8 text-center text-slate-500">Đang tải...</div>
         ) : courts.length > 0 ? (
           <table className="w-full text-left border-collapse">
@@ -171,8 +100,8 @@ const CourtManagement = () => {
       <CourtModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        formData={formData}
-        setFormData={setFormData}
+        formRegister={formRegister}
+        errors={errors}
         onSubmit={handleSubmit}
         saving={saving}
       />

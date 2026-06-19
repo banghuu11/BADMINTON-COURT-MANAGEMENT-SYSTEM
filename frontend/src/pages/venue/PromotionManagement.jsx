@@ -1,136 +1,24 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Tag, Plus, Edit2, Trash2 } from "lucide-react";
-import { apiFetch } from "../../services/api";
-import useAuthStore from "../../store/useAuthStore";
 import PromotionModal from "./PromotionModal.jsx";
+import { usePromotionManagement } from "../../hooks/usePromotionManagement";
 
 const PromotionManagement = () => {
-  const { user, isAuthenticated } = useAuthStore();
-  const navigate = useNavigate();
-
-  const [venues, setVenues] = useState([]);
-  const [selectedVenueId, setSelectedVenueId] = useState("");
-  const [promotions, setPromotions] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({
-    promotionName: "",
-    description: "",
-    discountType: "Percent",
-    discountValue: "",
-    minOrderAmount: "",
-    maxDiscount: "",
-    startDate: "",
-    endDate: "",
-    usageLimit: "",
-  });
-
-  useEffect(() => {
-    const roleId = user?.roleid || user?.roleId;
-    if (!isAuthenticated || (roleId !== 1 && roleId !== 2)) {
-      alert("Trang này chỉ dành cho Admin và Chủ sân.");
-      navigate("/");
-      return;
-    }
-
-    const init = async () => {
-      try {
-        const venueData = await apiFetch("/venues");
-        setVenues(venueData.venues || []);
-        if (venueData.venues?.length > 0)
-          setSelectedVenueId(venueData.venues[0].venueid);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    init();
-  }, [isAuthenticated, user, navigate]);
-
-  useEffect(() => {
-    const fetchPromos = async () => {
-      if (!selectedVenueId) return;
-      try {
-        setLoading(true);
-        const data = await apiFetch(`/promotions/venue/${selectedVenueId}`);
-        setPromotions(data.promotions || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPromos();
-  }, [selectedVenueId]);
-
-  const openModal = (promo = null) => {
-    if (promo) {
-      setEditingId(promo.promotionid);
-      setFormData({
-        promotionName: promo.promotionname,
-        description: promo.description || "",
-        discountType: promo.discounttype,
-        discountValue: promo.discountvalue,
-        minOrderAmount: promo.minorderamount,
-        maxDiscount: promo.maxdiscount || "",
-        startDate: new Date(promo.startdate).toISOString().slice(0, 16),
-        endDate: new Date(promo.enddate).toISOString().slice(0, 16),
-        usageLimit: promo.usagelimit || "",
-      });
-    } else {
-      setEditingId(null);
-      setFormData({
-        promotionName: "",
-        description: "",
-        discountType: "Percent",
-        discountValue: "",
-        minOrderAmount: "",
-        maxDiscount: "",
-        startDate: "",
-        endDate: "",
-        usageLimit: "",
-      });
-    }
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      if (editingId) {
-        await apiFetch(`/promotions/${editingId}`, {
-          method: "PUT",
-          body: JSON.stringify(formData),
-        });
-      } else {
-        await apiFetch("/promotions", {
-          method: "POST",
-          body: JSON.stringify({ ...formData, venueId: selectedVenueId }),
-        });
-      }
-      setIsModalOpen(false);
-      const data = await apiFetch(`/promotions/venue/${selectedVenueId}`);
-      setPromotions(data.promotions || []);
-    } catch (err) {
-      alert(err.message || "Lỗi lưu khuyến mãi");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Ngừng áp dụng khuyến mãi này?")) return;
-    try {
-      await apiFetch(`/promotions/${id}`, { method: "DELETE" });
-      setPromotions(promotions.filter((p) => p.promotionid !== id));
-    } catch (err) {
-      alert(err.message);
-    }
-  };
+  const {
+    venues,
+    selectedVenueId,
+    setSelectedVenueId,
+    promotions,
+    isLoading,
+    isModalOpen,
+    setIsModalOpen,
+    editingId,
+    saving,
+    formRegister,
+    handleSubmit,
+    errors,
+    openModal,
+    handleDelete,
+  } = usePromotionManagement();
 
   return (
     <div className="max-w-7xl mx-auto px-5 py-8 animate-fade-in">
@@ -166,7 +54,7 @@ const PromotionManagement = () => {
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-        {loading ? (
+        {isLoading ? (
           <div className="p-8 text-center text-slate-500">Đang tải...</div>
         ) : promotions.length > 0 ? (
           <table className="w-full text-left border-collapse">
@@ -230,9 +118,9 @@ const PromotionManagement = () => {
       <PromotionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        formData={formData}
-        setFormData={setFormData}
+        formRegister={formRegister}
         onSubmit={handleSubmit}
+        errors={errors}
         isEditing={!!editingId}
         saving={saving}
       />

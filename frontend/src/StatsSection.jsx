@@ -1,40 +1,33 @@
-import { useState, useEffect } from "react";
 import { Dumbbell, Users } from "lucide-react";
-import { apiFetch } from "./services/api";
+import { useFetch } from "./hooks/useFetch";
 
 const StatsSection = () => {
-  const [stats, setStats] = useState({ totalMatches: 0, totalUsers: 0 });
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const data = await apiFetch("/dashboard/public");
-        if (data.stats) setStats(data.stats);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchStats();
-  }, []);
+  const { data } = useFetch("/dashboard/public");
+  const stats = data?.stats || { totalMatches: 0, totalUsers: 0 };
 
   return (
     <section className="mt-12 px-5 grid grid-cols-2 gap-4">
-      <div className="bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col justify-between aspect-square hover:bg-white/10 transition-colors">
-        <Dumbbell className="text-primary w-8 h-8" />
+      <div className="bg-white border border-slate-200 shadow-sm p-6 rounded-2xl flex flex-col justify-between aspect-square hover:border-primary/50 transition-colors">
+        <Dumbbell className="text-[#0b1c30] w-8 h-8" />
         <div>
-          <p className="text-4xl font-bold text-white">{stats.totalMatches}</p>
-          <p className="text-white/50 text-xs uppercase tracking-wider font-bold">
+          <p className="text-4xl font-extrabold text-slate-900">
+            {stats.totalMatches}
+          </p>
+          <p className="text-slate-500 text-xs uppercase tracking-wider font-bold mt-1">
             Trận Đã Đấu
           </p>
         </div>
       </div>
-      <div className="bg-gradient-to-br from-primary to-[#9acc00] p-6 rounded-2xl flex flex-col justify-between aspect-square shadow-[0_5px_20px_rgba(191,240,0,0.3)]">
-        <Users className="text-[#0b1c30] w-8 h-8" />
-        <div>
-          <p className="text-4xl font-bold text-on-primary">
+      <div className="bg-[#0b1c30] p-6 rounded-2xl flex flex-col justify-between aspect-square shadow-lg relative overflow-hidden">
+        <div className="absolute -right-4 -bottom-4 opacity-10">
+          <Users className="w-24 h-24 text-white" />
+        </div>
+        <Users className="text-primary w-8 h-8 relative z-10" />
+        <div className="relative z-10">
+          <p className="text-4xl font-extrabold text-white">
             {stats.totalUsers}
           </p>
-          <p className="text-on-primary/70 text-xs uppercase tracking-wider font-bold">
+          <p className="text-primary/80 text-xs uppercase tracking-wider font-bold mt-1">
             Thành Viên
           </p>
         </div>

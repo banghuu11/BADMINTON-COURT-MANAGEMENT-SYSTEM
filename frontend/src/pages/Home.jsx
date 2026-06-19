@@ -1,7 +1,7 @@
-import HeroSection from "../HeroSection";
-import TrendingCourts from "../TrendingCourts";
-import MatchSection from "../MatchSection";
-import StatsSection from "../StatsSection";
+import HeroSection from "../components/home/HeroSection";
+import TrendingCourts from "../components/home/TrendingCourts";
+import MatchSection from "../components/home/MatchSection";
+import StatsSection from "../components/home/StatsSection";
 
 const Home = () => {
   return (

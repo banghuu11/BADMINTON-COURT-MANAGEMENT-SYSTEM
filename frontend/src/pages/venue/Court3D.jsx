@@ -3,6 +3,7 @@ import { Check, User } from "lucide-react";
 const Court3D = ({
   slots,
   selectedSlot,
+  selectedPositions = [],
   selectedTimeSlot,
   onSlotClick,
   occupiedSlots = [],
@@ -59,8 +60,11 @@ const Court3D = ({
 
         {/* Slots */}
         {slots.map((slot) => {
-          const isOccupied = occupiedSlots.some((o) => o.id === slot.id);
-          const isSelected = selectedSlot?.id === slot.id;
+          const occupant = occupiedSlots.find((o) => o.id === slot.id);
+          const isOccupied = !!occupant;
+          const isSelected =
+            selectedPositions.some((p) => p.id === slot.id) ||
+            selectedSlot?.id === slot.id;
 
           return (
             <div
@@ -79,15 +83,27 @@ const Court3D = ({
                   !selectedTimeSlot
                     ? "bg-slate-400 text-slate-200 border-slate-300 cursor-not-allowed opacity-50"
                     : isOccupied
-                      ? "bg-red-500 text-white border-red-600 cursor-not-allowed opacity-90 scale-100"
+                      ? "bg-red-500 text-white border-red-600 cursor-not-allowed opacity-90 scale-100 p-0 overflow-hidden"
                       : isSelected
                         ? "bg-[#0b1c30] text-primary border-primary scale-110 shadow-[0_10px_20px_rgba(191,240,0,0.6)] cursor-pointer hover:-translate-y-2"
                         : "bg-primary text-[#0b1c30] border-white cursor-pointer hover:scale-105 hover:bg-[#a8d800] hover:-translate-y-2 shadow-[0_10px_15px_rgba(0,0,0,0.5)]"
                 }`}
-                title={isOccupied ? "Vị trí này đã có người" : slot.label}
+                title={
+                  isOccupied
+                    ? `Đã được đặt bởi: ${occupant.fullName || "Người chơi"}`
+                    : slot.label || "Trống"
+                }
               >
                 {isOccupied ? (
-                  <User className="w-6 h-6" />
+                  occupant.avatarUrl ? (
+                    <img
+                      src={occupant.avatarUrl}
+                      alt="Avatar"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-6 h-6" />
+                  )
                 ) : isSelected ? (
                   <Check className="w-6 h-6" />
                 ) : (

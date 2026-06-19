@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LandingLayout from "./LandingLayout";
+import LandingLayout from "./components/layout/LandingLayout";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -18,6 +18,7 @@ import CourtManagement from "./pages/venue/CourtManagement";
 import VenueManagement from "./pages/venue/VenueManagement";
 import PricingManagement from "./pages/venue/PricingManagement";
 import useAuthStore from "./store/useAuthStore";
+import MatchesPage from "./pages/MatchesPage";
 
 function App() {
   const fetchProfile = useAuthStore((state) => state.fetchProfile);
@@ -45,6 +46,7 @@ function App() {
           <Route path="/manage-courts" element={<CourtManagement />} />
           <Route path="/manage-venues" element={<VenueManagement />} />
           <Route path="/manage-pricing" element={<PricingManagement />} />
+          <Route path="/matches" element={<MatchesPage />} />
         </Route>
 
         {/* Các trang độc lập, không dùng chung Layout */}

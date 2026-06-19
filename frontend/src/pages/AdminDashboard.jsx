@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
   Users,
@@ -8,77 +6,16 @@ import {
   XCircle,
   FileText,
 } from "lucide-react";
-import { apiFetch } from "../services/api";
-import useAuthStore from "../store/useAuthStore";
+import { useAdminDashboard } from "../hooks/useAdminDashboard";
 
 const AdminDashboard = () => {
-  const user = useAuthStore((state) => state.user);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const navigate = useNavigate();
-
-  const [dashboardData, setDashboardData] = useState(null);
-  const [pendingOwners, setPendingOwners] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  // Kiểm tra quyền Admin (RoleId = 1)
-  useEffect(() => {
-    const roleId = user?.roleid || user?.roleId;
-    if (!isAuthenticated || roleId !== 1) {
-      alert("Truy cập từ chối! Bạn không phải là Admin.");
-      navigate("/");
-    }
-  }, [isAuthenticated, user, navigate]);
-
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        setLoading(true);
-        // Gọi 2 API đồng thời
-        const [dashRes, ownersRes] = await Promise.all([
-          apiFetch("/dashboard/admin"),
-          apiFetch("/admin/owners/pending"),
-        ]);
-        setDashboardData(dashRes);
-        setPendingOwners(ownersRes.owners || []);
-      } catch (err) {
-        setError(err.message || "Lỗi tải dữ liệu Dashboard.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const roleId = user?.roleid || user?.roleId;
-    if (isAuthenticated && roleId === 1) {
-      fetchDashboard();
-    }
-  }, [isAuthenticated, user]);
-
-  // Hàm xử lý duyệt/từ chối hồ sơ
-  const handleReview = async (ownerId, decision) => {
-    const actionText = decision === "Approve" ? "Duyệt" : "Từ chối";
-    if (!window.confirm(`Bạn chắc chắn muốn ${actionText} hồ sơ này?`)) return;
-
-    const note = window.prompt("Nhập ghi chú (không bắt buộc):", "");
-
-    try {
-      await apiFetch("/admin/owners/review", {
-        method: "POST",
-        body: JSON.stringify({
-          ownerId,
-          decision,
-          note: note || `Admin ${actionText}`,
-        }),
-      });
-      alert(`Đã ${actionText.toLowerCase()} hồ sơ thành công!`);
-
-      // Tải lại danh sách chờ duyệt
-      const ownersRes = await apiFetch("/admin/owners/pending");
-      setPendingOwners(ownersRes.owners || []);
-    } catch (err) {
-      alert(err.message || "Lỗi khi xử lý hồ sơ.");
-    }
-  };
+  const {
+    dashboardData,
+    pendingOwners,
+    isLoading: loading,
+    error,
+    handleReview,
+  } = useAdminDashboard();
 
   if (loading)
     return (

@@ -1,63 +1,21 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Building2, UserCircle, ShieldCheck, ArrowRight } from "lucide-react";
-import { apiFetch } from "../services/api";
-import useAuthStore from "../store/useAuthStore";
+import {
+  Building2,
+  UserCircle,
+  ShieldCheck,
+  ArrowRight,
+  Loader2,
+} from "lucide-react";
+import { useOwnerOnboarding } from "../hooks/useOwnerOnboarding";
 
 const OwnerOnboarding = () => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const user = useAuthStore((state) => state.user);
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const [formData, setFormData] = useState({
-    businessType: "Individual",
-    businessName: "",
-    taxCode: "",
-    businessAddress: "",
-    repFullName: user?.fullname || "",
-    repPosition: "Chủ cơ sở",
-    repPhone: user?.phonenumber || "",
-    repEmail: user?.email || "",
-    repIdType: "CCCD",
-    repIdNumber: "",
-    repIdIssuedDate: "",
-    repIdIssuedPlace: "",
-  });
-
-  // Nếu chưa đăng nhập thì bắt buộc đăng nhập
-  useEffect(() => {
-    if (!isAuthenticated) {
-      alert("Vui lòng đăng nhập trước khi đăng ký làm đối tác Chủ sân!");
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      await apiFetch("/owner/profile", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-      alert(
-        "Nộp hồ sơ thành công! Hệ thống sẽ xét duyệt trong thời gian sớm nhất.",
-      );
-      navigate("/profile"); // Chuyển về trang cá nhân để xem trạng thái
-    } catch (err) {
-      setError(err.message || "Có lỗi xảy ra khi nộp hồ sơ.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    isAuthenticated,
+    formRegister,
+    handleSubmit,
+    errors,
+    loading,
+    error,
+  } = useOwnerOnboarding();
 
   if (!isAuthenticated) return null;
 
@@ -94,13 +52,15 @@ const OwnerOnboarding = () => {
               </label>
               <input
                 type="text"
-                name="repFullName"
-                value={formData.repFullName}
-                onChange={handleChange}
-                required
+                {...formRegister("repFullName")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition-colors text-slate-900"
                 placeholder="VD: Nguyễn Văn A"
               />
+              {errors.repFullName && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.repFullName.message}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -110,12 +70,14 @@ const OwnerOnboarding = () => {
                 </label>
                 <input
                   type="tel"
-                  name="repPhone"
-                  value={formData.repPhone}
-                  onChange={handleChange}
-                  required
+                  {...formRegister("repPhone")}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition-colors text-slate-900"
                 />
+                {errors.repPhone && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.repPhone.message}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-slate-700 text-sm font-bold mb-1.5">
@@ -123,12 +85,14 @@ const OwnerOnboarding = () => {
                 </label>
                 <input
                   type="email"
-                  name="repEmail"
-                  value={formData.repEmail}
-                  onChange={handleChange}
-                  required
+                  {...formRegister("repEmail")}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition-colors text-slate-900"
                 />
+                {errors.repEmail && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.repEmail.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -138,12 +102,14 @@ const OwnerOnboarding = () => {
               </label>
               <input
                 type="text"
-                name="repIdNumber"
-                value={formData.repIdNumber}
-                onChange={handleChange}
-                required
+                {...formRegister("repIdNumber")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition-colors text-slate-900"
               />
+              {errors.repIdNumber && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.repIdNumber.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -159,9 +125,7 @@ const OwnerOnboarding = () => {
                 Loại hình kinh doanh
               </label>
               <select
-                name="businessType"
-                value={formData.businessType}
-                onChange={handleChange}
+                {...formRegister("businessType")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition-colors text-slate-900"
               >
                 <option value="Individual">Cá nhân / Hộ kinh doanh</option>
@@ -175,9 +139,7 @@ const OwnerOnboarding = () => {
               </label>
               <input
                 type="text"
-                name="businessName"
-                value={formData.businessName}
-                onChange={handleChange}
+                {...formRegister("businessName")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition-colors text-slate-900"
                 placeholder="VD: Sân cầu lông Kỳ Hòa"
               />
@@ -189,9 +151,7 @@ const OwnerOnboarding = () => {
               </label>
               <input
                 type="text"
-                name="taxCode"
-                value={formData.taxCode}
-                onChange={handleChange}
+                {...formRegister("taxCode")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition-colors text-slate-900"
                 placeholder="Nhập mã số thuế"
               />
@@ -202,9 +162,7 @@ const OwnerOnboarding = () => {
                 Địa chỉ kinh doanh
               </label>
               <textarea
-                name="businessAddress"
-                value={formData.businessAddress}
-                onChange={handleChange}
+                {...formRegister("businessAddress")}
                 rows="2"
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition-colors text-slate-900 resize-none"
                 placeholder="Nhập địa chỉ đầy đủ..."
@@ -236,7 +194,9 @@ const OwnerOnboarding = () => {
             className={`flex items-center gap-2 bg-[#0b1c30] text-white px-8 py-3.5 rounded-xl font-bold text-sm whitespace-nowrap hover:bg-[#1a2c42] transition-colors shadow-lg ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {loading ? (
-              "Đang xử lý..."
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý...
+              </>
             ) : (
               <>
                 Gửi Hồ Sơ <ArrowRight className="w-4 h-4" />

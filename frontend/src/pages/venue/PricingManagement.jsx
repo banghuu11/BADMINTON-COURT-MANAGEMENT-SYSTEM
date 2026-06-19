@@ -1,128 +1,27 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { DollarSign, Plus, Clock, MapPin, Trash2 } from "lucide-react";
-import { apiFetch } from "../../services/api";
-import useAuthStore from "../../store/useAuthStore";
 import PricingModal from "./PricingModal.jsx";
+import { usePricingManagement } from "../../hooks/usePricingManagement";
 
 // Component quản lý bảng giá sân
 const PricingManagement = () => {
-  const { user, isAuthenticated } = useAuthStore();
-  const navigate = useNavigate();
-
-  const [venues, setVenues] = useState([]);
-  const [selectedVenueId, setSelectedVenueId] = useState("");
-
-  const [courts, setCourts] = useState([]);
-  const [selectedCourtId, setSelectedCourtId] = useState("");
-
-  const [pricingList, setPricingList] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  const [formData, setFormData] = useState({
-    slotName: "",
-    dayType: "All",
-    startTime: "05:00",
-    endTime: "06:30",
-    price: "",
-  });
-
-  // 1. Fetch Cơ sở
-  useEffect(() => {
-    const roleId = user?.roleid || user?.roleId;
-    if (!isAuthenticated || (roleId !== 1 && roleId !== 2)) {
-      navigate("/");
-      return;
-    }
-    const fetchVenues = async () => {
-      try {
-        const data = await apiFetch("/venues");
-        setVenues(data.venues || []);
-        if (data.venues?.length > 0) setSelectedVenueId(data.venues[0].venueid);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchVenues();
-  }, [isAuthenticated, user, navigate]);
-
-  // 2. Fetch Sân khi đổi Cơ sở
-  useEffect(() => {
-    const fetchCourts = async () => {
-      if (!selectedVenueId) return;
-      try {
-        setCourts([]);
-        setSelectedCourtId("");
-        setPricingList([]);
-        const data = await apiFetch(`/courts/venue/${selectedVenueId}`);
-        setCourts(data.courts || []);
-        if (data.courts?.length > 0) setSelectedCourtId(data.courts[0].courtid);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchCourts();
-  }, [selectedVenueId]);
-
-  // 3. Fetch Bảng giá khi đổi Sân
-  useEffect(() => {
-    const fetchPricing = async () => {
-      if (!selectedCourtId) return;
-      try {
-        setLoading(true);
-        const data = await apiFetch(`/pricing/court/${selectedCourtId}`);
-        setPricingList(data.pricingList || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPricing();
-  }, [selectedCourtId]);
-
-  const openModal = () => {
-    setFormData({
-      slotName: "",
-      dayType: "All",
-      startTime: "05:00",
-      endTime: "06:30",
-      price: "",
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await apiFetch("/pricing", {
-        method: "POST",
-        body: JSON.stringify({ ...formData, courtId: selectedCourtId }),
-      });
-      setIsModalOpen(false);
-      const data = await apiFetch(`/pricing/court/${selectedCourtId}`);
-      setPricingList(data.pricingList || []);
-      alert("Thêm khung giờ thành công!");
-    } catch (err) {
-      alert(err.message || "Lỗi lưu bảng giá.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Xóa cấu hình giá này?")) return;
-    try {
-      await apiFetch(`/pricing/${id}`, { method: "DELETE" });
-      setPricingList(pricingList.filter((p) => p.pricingid !== id));
-    } catch (err) {
-      alert(err.message);
-    }
-  };
+  const {
+    venues,
+    selectedVenueId,
+    setSelectedVenueId,
+    courts,
+    selectedCourtId,
+    setSelectedCourtId,
+    pricingList,
+    isLoading,
+    isModalOpen,
+    setIsModalOpen,
+    formRegister,
+    handleSubmit,
+    errors,
+    openModal,
+    handleDelete,
+    saving,
+  } = usePricingManagement();
 
   const translateDayType = (type) => {
     const dict = {
@@ -190,7 +89,7 @@ const PricingManagement = () => {
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-        {loading ? (
+        {isLoading ? (
           <div className="p-8 text-center text-slate-500">
             Đang tải cấu hình giá...
           </div>
@@ -251,9 +150,9 @@ const PricingManagement = () => {
       <PricingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        formData={formData}
-        setFormData={setFormData}
+        formRegister={formRegister}
         onSubmit={handleSubmit}
+        errors={errors}
         saving={saving}
       />
     </div>

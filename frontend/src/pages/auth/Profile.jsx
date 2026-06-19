@@ -1,107 +1,38 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Mail, Phone, Calendar, Clock, LogOut, Star } from "lucide-react";
-import { apiFetch } from "../../services/api";
 import useAuthStore from "../../store/useAuthStore";
+import { useProfile } from "../../hooks/useProfile";
 import ReviewModal from "../../components/profile/ReviewModal";
 
 const Profile = () => {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const navigate = useNavigate();
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  // State cho Modal Đánh giá
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [reviewForm, setReviewForm] = useState({
-    venueId: "",
-    bookingId: "",
-    rating: 5,
-    comment: "",
-  });
-  const [submittingReview, setSubmittingReview] = useState(false);
-
-  // Redirect nếu chưa đăng nhập
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        setLoading(true);
-        const data = await apiFetch("/booking/history");
-        setBookings(data.bookings || []);
-      } catch (err) {
-        setError(err.message || "Không thể tải lịch sử đặt sân.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isAuthenticated) fetchBookings();
-  }, [isAuthenticated]);
-
-  // Hàm xử lý hủy đặt sân
-  const handleCancelBooking = async (bookingId) => {
-    const confirmCancel = window.confirm(
-      "Bạn có chắc chắn muốn hủy đơn đặt sân này không?",
-    );
-    if (!confirmCancel) return;
-
-    const reason = window.prompt("Vui lòng nhập lý do hủy (không bắt buộc):");
-
-    try {
-      await apiFetch(`/booking/${bookingId}/cancel`, {
-        method: "PATCH",
-        body: JSON.stringify({ cancelReason: reason || "Khách yêu cầu hủy" }),
-      });
-      alert("Hủy đặt sân thành công!");
-      // Cập nhật lại danh sách lịch sử sau khi hủy
-      const data = await apiFetch("/booking/history");
-      setBookings(data.bookings || []);
-    } catch (err) {
-      alert(err.message || "Có lỗi xảy ra khi hủy đặt sân.");
-    }
-  };
+  const {
+    bookings,
+    isLoading,
+    error,
+    isReviewModalOpen,
+    setIsReviewModalOpen,
+    reviewForm,
+    setReviewForm,
+    submittingReview,
+    handleCancelBooking,
+    handleSubmitReview,
+  } = useProfile();
 
   // Mở modal đánh giá
   const openReviewModal = (booking) => {
     const venueId = booking.slots?.[0]?.venueId;
-    if (!venueId) {
-      alert("Không tìm thấy thông tin cơ sở để đánh giá!");
-      return;
-    }
-    setReviewForm({
-      venueId,
-      bookingId: booking.bookingid,
-      rating: 5,
-      comment: "",
-    });
-    setIsReviewModalOpen(true);
-  };
-
-  // Gửi đánh giá
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    setSubmittingReview(true);
-    try {
-      await apiFetch("/reviews", {
-        method: "POST",
-        body: JSON.stringify(reviewForm),
+    if (venueId)
+      setReviewForm({
+        venueId,
+        bookingId: booking.bookingid,
+        rating: 5,
+        comment: "",
       });
-      alert("Cảm ơn bạn đã đánh giá!");
-      setIsReviewModalOpen(false);
-    } catch (err) {
-      alert(err.message || "Lỗi khi gửi đánh giá.");
-    } finally {
-      setSubmittingReview(false);
-    }
+    setIsReviewModalOpen(true);
   };
 
   const getStatusColor = (status) => {
@@ -142,7 +73,7 @@ const Profile = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-5 py-8 animate-fade-in">
-      <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-8">
+      <h1 className="text-3xl font-extrabold text-white tracking-tight mb-8">
         Hồ sơ cá nhân
       </h1>
 
@@ -185,16 +116,16 @@ const Profile = () => {
 
         {/* Cột lịch sử đặt sân */}
         <div className="md:col-span-2">
-          <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <Calendar className="w-6 h-6 text-primary" /> Lịch sử đặt sân
           </h2>
 
-          {loading ? (
+          {isLoading ? (
             <div className="text-center py-10 text-slate-500 bg-white rounded-3xl border border-slate-200">
               Đang tải lịch sử...
             </div>
           ) : error ? (
-            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium border border-red-100">
+            <div className="bg-red-500/20 text-red-300 p-4 rounded-xl text-sm font-medium border border-red-500/30">
               {error}
             </div>
           ) : bookings.length === 0 ? (
@@ -265,6 +196,12 @@ const Profile = () => {
                           <div>
                             <p className="font-bold text-slate-900 text-sm flex items-center gap-2">
                               {slot.venueName} - {slot.courtName}
+                              <span className="text-[10px] font-bold text-slate-600 bg-slate-200 px-2 py-0.5 rounded-md ml-1">
+                                {slot.positionIndex === 0 ||
+                                slot.positionIndex == null
+                                  ? "Bao nguyên sân"
+                                  : `Vị trí: ${slot.positionIndex}`}
+                              </span>
                               {slot.slotStatus === "Playing" && (
                                 <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded uppercase">
                                   Đang chơi
