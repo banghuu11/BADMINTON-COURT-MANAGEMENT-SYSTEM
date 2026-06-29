@@ -59,7 +59,7 @@ const MatchSection = () => {
           {matches.map((match) => (
             <div
               key={match.waitid}
-              className="bg-[#0b1c30] rounded-3xl p-6 border border-primary/10 shadow-lg hover:shadow-primary/20 hover:border-primary/20 transition-all"
+              className="bg-background rounded-3xl p-6 border border-primary/10 shadow-lg hover:shadow-primary/20 hover:border-primary/20 transition-all"
             >
               <div className="flex items-center gap-4 mb-5 border-b border-white/10 pb-5">
                 <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0">
@@ -104,7 +104,7 @@ const MatchSection = () => {
 
               <button
                 onClick={() => handleJoinMatch(match.waitid)}
-                className="w-full py-3 rounded-xl bg-primary text-[#0b1c30] font-bold hover:bg-[#a8d800] transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-primary text-on-primary font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
               >
                 <Users className="w-5 h-5" /> Tham gia ngay
               </button>

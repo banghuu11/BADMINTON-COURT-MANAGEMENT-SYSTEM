@@ -15,6 +15,7 @@ export const registerSchema = z
     username: z.string().min(1, "Vui lòng nhập tên đăng nhập"),
     password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
     confirmPassword: z.string().min(1, "Vui lòng xác nhận mật khẩu"),
+    roleName: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Mật khẩu xác nhận không khớp",

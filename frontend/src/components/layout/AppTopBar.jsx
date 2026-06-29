@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, Bell, User, Menu, X, LogOut } from "lucide-react";
 import useAuthStore from "../../store/useAuthStore";
+import NotificationPopup from "./NotificationPopup";
 
 const AppTopBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -19,39 +20,39 @@ const AppTopBar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navLinks = [
-    { name: "Trang chủ", path: "/" },
-    { name: "Tìm sân", path: "/courts" },
-    { name: "Giao lưu", path: "/matches" },
-    { name: "Khuyến mãi", path: "/promotions" },
-  ];
-
-  // Hiển thị thêm tab Admin nếu user là Admin
+  const navLinks = [];
+  
   if (user && (user.roleid === 1 || user.roleId === 1)) {
-    navLinks.push({ name: "Quản trị", path: "/admin-dashboard" });
-  } else if (user && (user.roleid === 2 || user.roleId === 2)) {
-    navLinks.push({ name: "Lễ tân", path: "/reception" });
-    navLinks.push({ name: "Cơ sở", path: "/manage-venues" });
-    navLinks.push({ name: "Quản lý Sân", path: "/manage-courts" });
-    navLinks.push({ name: "Bảng giá", path: "/manage-pricing" });
-    navLinks.push({ name: "Kho & Dịch vụ", path: "/services" });
-    navLinks.push({ name: "Quản lý KM", path: "/manage-promotions" });
-    navLinks.push({ name: "Thống kê", path: "/owner-dashboard" });
+    navLinks.push({ name: "Quản lý Dữ liệu", path: "/" });
+  } else {
+    navLinks.push({ name: "Trang chủ", path: "/" });
+    navLinks.push({ name: "Tìm sân", path: "/courts" });
+    navLinks.push({ name: "Giao lưu", path: "/matches" });
+    navLinks.push({ name: "Khuyến mãi", path: "/promotions" });
+
+    if (user && (user.roleid === 2 || user.roleId === 2)) {
+      navLinks.push({ name: "Lễ tân", path: "/reception" });
+      navLinks.push({ name: "Cơ sở", path: "/manage-venues" });
+      navLinks.push({ name: "Quản lý Sân", path: "/manage-courts" });
+      navLinks.push({ name: "Bảng giá", path: "/manage-pricing" });
+      navLinks.push({ name: "Kho & Dịch vụ", path: "/services" });
+      navLinks.push({ name: "Quản lý KM", path: "/manage-promotions" });
+    }
   }
 
   return (
     <header
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-[#0b1c30]/90 backdrop-blur-md border-b border-white/10 shadow-sm py-3"
+          ? "bg-background/90 backdrop-blur-md border-b border-white/10 shadow-sm py-3"
           : "bg-transparent py-5"
       }`}
     >
       <div className="max-w-7xl mx-auto px-5 lg:px-8 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 z-50">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center transform rotate-3 shadow-[0_0_15px_rgba(191,240,0,0.4)]">
-            <span className="text-[#0b1c30] font-black text-xl -rotate-3">
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center transform rotate-3 shadow-[0_0_15px_rgba(225,255,81,0.4)]">
+            <span className="text-on-primary font-black text-xl -rotate-3">
               C
             </span>
           </div>
@@ -86,10 +87,7 @@ const AppTopBar = () => {
           </div>
 
           {/* Thông báo */}
-          <button className="relative p-2 text-slate-300 hover:text-primary transition-colors cursor-pointer">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-          </button>
+          <NotificationPopup />
 
           {/* Auth / Profile */}
           {isAuthenticated ? (
@@ -110,8 +108,12 @@ const AppTopBar = () => {
                         : "Thành viên"}
                   </p>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
-                  <User className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary group-hover:scale-105 transition-transform overflow-hidden">
+                  {user?.avatarurl ? (
+                    <img src={user.avatarurl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-5 h-5" />
+                  )}
                 </div>
               </Link>
               <button
@@ -132,7 +134,7 @@ const AppTopBar = () => {
               </Link>
               <Link
                 to="/register"
-                className="bg-primary hover:bg-[#a8d800] text-[#0b1c30] px-5 py-2 rounded-full font-bold text-sm transition-colors shadow-[0_0_15px_rgba(191,240,0,0.3)]"
+                className="bg-primary hover:bg-primary-hover text-on-primary px-5 py-2 rounded-full font-bold text-sm transition-colors shadow-[0_0_15px_rgba(225,255,81,0.3)]"
               >
                 Đăng ký
               </Link>
@@ -155,7 +157,7 @@ const AppTopBar = () => {
 
       {/* Mobile Sidebar Menu */}
       <div
-        className={`md:hidden fixed inset-0 bg-[#0b1c30] pt-24 px-5 transition-transform duration-300 ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`md:hidden fixed inset-0 bg-background pt-24 px-5 transition-transform duration-300 ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex flex-col gap-6">
           <div className="relative">
@@ -186,8 +188,12 @@ const AppTopBar = () => {
                   className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/10"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                    <User className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary overflow-hidden shrink-0 border border-primary/20">
+                    {user?.avatarurl ? (
+                      <img src={user.avatarurl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-6 h-6" />
+                    )}
                   </div>
                   <div>
                     <p className="font-bold text-white text-lg">
@@ -219,7 +225,7 @@ const AppTopBar = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="w-full bg-primary text-[#0b1c30] py-3 rounded-xl font-bold text-center transition-colors"
+                  className="w-full bg-primary text-on-primary py-3 rounded-xl font-bold text-center transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Đăng ký tài khoản

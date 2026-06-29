@@ -47,10 +47,187 @@ const checkAvailability = async (req, res) => {
 };
 
 // [POST] /api/booking - Tạo đơn đặt sân mới
+// Helper validate mã giảm giá
+const validatePromotion = async (clientOrPool, code, courtId, playDate, courtTotal, userId) => {
+  const courtResult = await clientOrPool.query(
+    "SELECT VenueId FROM Court WHERE CourtId = $1",
+    [courtId]
+  );
+  if (courtResult.rows.length === 0) {
+    throw new Error("Không tìm thấy thông tin sân đấu!");
+  }
+  const venueId = courtResult.rows[0].venueid;
+
+  const promoResult = await clientOrPool.query(
+    `SELECT dc.CodeId, dc.UsageLimitPerUser, dc.UsageCount as CodeUsageCount, dc.IsActive as CodeIsActive,
+            p.PromotionId, p.VenueId as PromoVenueId, p.DiscountType, p.DiscountValue, p.MinOrderAmount, p.MaxDiscount, p.UsageLimit as PromoUsageLimit, p.UsageCount as PromoUsageCount, p.IsActive as PromoIsActive, p.StartDate, p.EndDate
+     FROM DiscountCode dc
+     JOIN Promotion p ON dc.PromotionId = p.PromotionId
+     WHERE UPPER(dc.Code) = UPPER($1) AND dc.IsActive = TRUE AND p.IsActive = TRUE`,
+    [code.trim()]
+  );
+
+  if (promoResult.rows.length === 0) {
+    throw new Error("Mã giảm giá không tồn tại hoặc đã hết hiệu lực!");
+  }
+
+  const promoData = promoResult.rows[0];
+  const now = new Date();
+  const startDate = new Date(promoData.startdate);
+  const endDate = new Date(promoData.enddate);
+  if (now < startDate || now > endDate) {
+    throw new Error("Chương trình khuyến mãi này đã kết thúc hoặc chưa bắt đầu!");
+  }
+
+  if (promoData.promovenueid && promoData.promovenueid !== venueId) {
+    throw new Error("Mã giảm giá không áp dụng cho cơ sở sân này!");
+  }
+
+  if (promoData.promousagelimit !== null && promoData.promousagecount >= promoData.promousagelimit) {
+    throw new Error("Mã giảm giá này đã đạt giới hạn lượt sử dụng tối đa!");
+  }
+
+  if (userId) {
+    const userUsageResult = await clientOrPool.query(
+      "SELECT COUNT(*) as usage_count FROM DiscountCodeUsage WHERE CodeId = $1 AND UserId = $2",
+      [promoData.codeid, userId]
+    );
+    const userUsageCount = parseInt(userUsageResult.rows[0].usage_count, 10);
+    if (promoData.usagelimitperuser !== null && userUsageCount >= promoData.usagelimitperuser) {
+      throw new Error("Bạn đã sử dụng mã giảm giá này rồi!");
+    }
+  }
+
+  if (Number(courtTotal) < Number(promoData.minorderamount)) {
+    throw new Error(`Giá trị đặt sân (${Number(courtTotal).toLocaleString()}đ) chưa đạt tối thiểu (${Number(promoData.minorderamount).toLocaleString()}đ) để áp dụng mã!`);
+  }
+
+  let discountAmount = 0;
+  if (promoData.discounttype === "Percent" || promoData.discounttype === "Percentage") {
+    discountAmount = (Number(courtTotal) * Number(promoData.discountvalue)) / 100;
+  } else if (promoData.discounttype === "FixedAmount") {
+    discountAmount = Number(promoData.discountvalue);
+  }
+
+  if (promoData.maxdiscount !== null && discountAmount > Number(promoData.maxdiscount)) {
+    discountAmount = Number(promoData.maxdiscount);
+  }
+
+  if (discountAmount > Number(courtTotal)) {
+    discountAmount = Number(courtTotal);
+  }
+
+  return {
+    codeId: promoData.codeid,
+    promotionId: promoData.promotionid,
+    code: promoData.code,
+    discountType: promoData.discounttype,
+    discountValue: promoData.discountvalue,
+    maxDiscount: promoData.maxdiscount,
+    discountAmount: discountAmount,
+    finalAmount: Number(courtTotal) - discountAmount,
+  };
+};
+
+// Helper validate khuyến mãi được chọn trực tiếp (không qua code)
+const validatePromotionById = async (clientOrPool, promotionId, courtId, courtTotal) => {
+  const courtResult = await clientOrPool.query(
+    "SELECT VenueId FROM Court WHERE CourtId = $1",
+    [courtId]
+  );
+  if (courtResult.rows.length === 0) {
+    throw new Error("Không tìm thấy thông tin sân đấu!");
+  }
+  const venueId = courtResult.rows[0].venueid;
+
+  const promoResult = await clientOrPool.query(
+    `SELECT * FROM Promotion WHERE PromotionId = $1 AND IsActive = TRUE`,
+    [promotionId]
+  );
+
+  if (promoResult.rows.length === 0) {
+    throw new Error("Khuyến mãi không tồn tại hoặc đã hết hiệu lực!");
+  }
+
+  const promoData = promoResult.rows[0];
+  const now = new Date();
+  const startDate = new Date(promoData.startdate);
+  const endDate = new Date(promoData.enddate);
+  if (now < startDate || now > endDate) {
+    throw new Error("Chương trình khuyến mãi đã kết thúc hoặc chưa bắt đầu!");
+  }
+
+  if (promoData.venueid && promoData.venueid !== venueId) {
+    throw new Error("Khuyến mãi không áp dụng cho cơ sở sân này!");
+  }
+
+  if (promoData.usagelimit !== null && promoData.usagecount >= promoData.usagelimit) {
+    throw new Error("Khuyến mãi này đã hết lượt sử dụng!");
+  }
+
+  if (Number(courtTotal) < Number(promoData.minorderamount)) {
+    throw new Error(`Giá trị đặt sân (${Number(courtTotal).toLocaleString()}đ) chưa đạt tối thiểu (${Number(promoData.minorderamount).toLocaleString()}đ) để áp dụng khuyến mãi!`);
+  }
+
+  let discountAmount = 0;
+  if (promoData.discounttype === "Percent" || promoData.discounttype === "Percentage") {
+    discountAmount = (Number(courtTotal) * Number(promoData.discountvalue)) / 100;
+  } else if (promoData.discounttype === "FixedAmount") {
+    discountAmount = Number(promoData.discountvalue);
+  }
+
+  if (promoData.maxdiscount !== null && discountAmount > Number(promoData.maxdiscount)) {
+    discountAmount = Number(promoData.maxdiscount);
+  }
+
+  if (discountAmount > Number(courtTotal)) {
+    discountAmount = Number(courtTotal);
+  }
+
+  return {
+    promotionId: promoData.promotionid,
+    discountType: promoData.discounttype,
+    discountValue: promoData.discountvalue,
+    maxDiscount: promoData.maxdiscount,
+    discountAmount: discountAmount,
+    finalAmount: Number(courtTotal) - discountAmount,
+  };
+};
+
+// [POST] /api/booking/validate-promotion - Kiểm tra mã/khuyến mãi hợp lệ và trả về số tiền giảm
+const validatePromotionEndpoint = async (req, res) => {
+  const { code, promotionId, courtId, playDate, courtTotal } = req.body;
+  const userId = req.user ? req.user.userId : null;
+
+  if (!courtId || !courtTotal) {
+    return res.status(400).json({ error: "Thiếu thông tin để kiểm tra khuyến mãi!" });
+  }
+
+  try {
+    let result;
+    if (code) {
+      result = await validatePromotion(pool, code, courtId, playDate, courtTotal, userId);
+    } else if (promotionId) {
+      result = await validatePromotionById(pool, promotionId, courtId, courtTotal);
+    } else {
+      return res.status(400).json({ error: "Vui lòng nhập mã giảm giá hoặc chọn khuyến mãi!" });
+    }
+
+    res.json({
+      message: "Khuyến mãi hợp lệ!",
+      discountDetail: result,
+    });
+  } catch (error) {
+    console.error("Lỗi validatePromotionEndpoint:", error);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// [POST] /api/booking - Tạo đơn đặt sân mới
 const createBooking = async (req, res) => {
   // Mặc định lấy userId từ token (nếu khách hàng đã đăng nhập)
   const customerId = req.user ? req.user.userId : null;
-  const { guestName, guestPhone, bookingType, note, slots } = req.body;
+  const { guestName, guestPhone, bookingType, note, slots, promotionId, codeId, discountCode } = req.body;
 
   if (!slots || !Array.isArray(slots) || slots.length === 0) {
     return res
@@ -62,14 +239,46 @@ const createBooking = async (req, res) => {
   try {
     await client.query("BEGIN");
 
+    // Tính tổng tiền gốc để phục vụ validate khuyến mãi
+    const calculateSlotsTotal = (slotsList) => {
+      return slotsList.reduce((sum, slot) => {
+        const [sh, sm] = slot.startTime.split(":").map(Number);
+        const [eh, em] = slot.endTime.split(":").map(Number);
+        const durationHours = (eh * 60 + em - (sh * 60 + sm)) / 60;
+        return sum + Number(slot.appliedPrice) * durationHours;
+      }, 0);
+    };
+    const courtTotal = calculateSlotsTotal(slots);
+
+    // Xác thực khuyến mãi nếu có gửi lên
+    let promoIdToSave = null;
+    let codeIdToSave = null;
+
+    if (discountCode) {
+      const valResult = await validatePromotion(client, discountCode, slots[0].courtId, slots[0].playDate, courtTotal, customerId);
+      promoIdToSave = valResult.promotionId;
+      codeIdToSave = valResult.codeId;
+    } else if (promotionId) {
+      const valResult = await validatePromotionById(client, promotionId, slots[0].courtId, courtTotal);
+      promoIdToSave = valResult.promotionId;
+    } else if (codeId) {
+      // Tìm ngược lại code từ codeId để validate
+      const codeResult = await client.query("SELECT Code FROM DiscountCode WHERE CodeId = $1", [codeId]);
+      if (codeResult.rows.length > 0) {
+        const valResult = await validatePromotion(client, codeResult.rows[0].code, slots[0].courtId, slots[0].playDate, courtTotal, customerId);
+        promoIdToSave = valResult.promotionId;
+        codeIdToSave = valResult.codeId;
+      }
+    }
+
     // 1. Tạo mã BookingCode ngẫu nhiên (Ví dụ: BK + timestamp 6 số cuối + random)
     const bookingCode =
       "BK" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000);
 
     // 2. Lưu thông tin chung vào bảng Booking
     const insertBookingQuery = `
-      INSERT INTO Booking (CustomerId, GuestName, GuestPhone, BookingCode, BookingType, Source, Note, BookingStatus)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'Pending') RETURNING BookingId, BookingCode
+      INSERT INTO Booking (CustomerId, GuestName, GuestPhone, BookingCode, BookingType, Source, Note, BookingStatus, PromotionId, CodeId)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'Pending', $8, $9) RETURNING BookingId, BookingCode
     `;
     const bookingValues = [
       customerId,
@@ -79,6 +288,8 @@ const createBooking = async (req, res) => {
       bookingType || "Online",
       "Web",
       note || null,
+      promoIdToSave,
+      codeIdToSave
     ];
     const bookingResult = await client.query(insertBookingQuery, bookingValues);
     const newBooking = bookingResult.rows[0];
@@ -120,6 +331,26 @@ const createBooking = async (req, res) => {
       ]);
     }
 
+    // 4. Ghi nhận lượt sử dụng khuyến mãi
+    if (promoIdToSave) {
+      await client.query(
+        "UPDATE Promotion SET UsageCount = UsageCount + 1 WHERE PromotionId = $1",
+        [promoIdToSave]
+      );
+    }
+    if (codeIdToSave) {
+      await client.query(
+        "UPDATE DiscountCode SET UsageCount = UsageCount + 1 WHERE CodeId = $1",
+        [codeIdToSave]
+      );
+      if (customerId) {
+        await client.query(
+          "INSERT INTO DiscountCodeUsage (CodeId, UserId, BookingId) VALUES ($1, $2, $3)",
+          [codeIdToSave, customerId, newBooking.bookingid]
+        );
+      }
+    }
+
     await client.query("COMMIT"); // Lưu tất cả vào Database
     res
       .status(201)
@@ -148,6 +379,7 @@ const createBooking = async (req, res) => {
     client.release(); // Trả client về lại cho pool
   }
 };
+
 
 // [GET] /api/booking/history - Lấy danh sách lịch sử đặt sân của user hiện tại
 const getMyBookings = async (req, res) => {
@@ -455,7 +687,45 @@ const createMatch = async (req, res) => {
   const customerId = req.user.userId;
   const { courtId, playDate, startTime, endTime } = req.body;
 
+  if (!courtId || !playDate || !startTime || !endTime) {
+    return res.status(400).json({
+      error: "Vui lòng chọn sân, ngày chơi, giờ bắt đầu và giờ kết thúc.",
+    });
+  }
+
+  if (startTime >= endTime) {
+    return res
+      .status(400)
+      .json({ error: "Giờ kết thúc phải sau giờ bắt đầu." });
+  }
+
   try {
+    const courtResult = await pool.query(
+      "SELECT CourtId FROM Court WHERE CourtId = $1 AND Status IN ('Available', 'Active')",
+      [courtId],
+    );
+    if (courtResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Sân không tồn tại hoặc đang ngừng hoạt động." });
+    }
+
+    const duplicateResult = await pool.query(
+      `SELECT WaitId FROM WaitingList
+       WHERE CustomerId = $1
+         AND CourtId = $2
+         AND PlayDate = $3
+         AND StartTime = $4
+         AND EndTime = $5
+         AND Status = 'Waiting'`,
+      [customerId, courtId, playDate, startTime, endTime],
+    );
+    if (duplicateResult.rows.length > 0) {
+      return res
+        .status(400)
+        .json({ error: "Bạn đã đăng tin giao lưu cho khung giờ này rồi." });
+    }
+
     const insertQuery = `
       INSERT INTO WaitingList (CustomerId, CourtId, PlayDate, StartTime, EndTime, Status)
       VALUES ($1, $2, $3, $4, $5, 'Waiting') RETURNING *
@@ -527,7 +797,7 @@ const getCourtSchedule = async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT bs.StartTime, bs.EndTime, bs.PositionIndex, u.AvatarUrl, u.FullName, u.PhoneNumber, b.GuestName, b.GuestPhone 
+      `SELECT bs.StartTime, bs.EndTime, bs.PositionIndex, u.AvatarUrl, u.FullName, u.PhoneNumber, u.SkillLevel, b.GuestName, b.GuestPhone 
        FROM BookingSlot bs 
        JOIN Booking b ON bs.BookingId = b.BookingId
        LEFT JOIN AppUser u ON b.CustomerId = u.UserId
@@ -585,4 +855,5 @@ module.exports = {
   joinMatch,
   getCourtSchedule,
   getVenueBookingsToday,
+  validatePromotionEndpoint,
 };

@@ -8,7 +8,7 @@ const StatsSection = () => {
   return (
     <section className="mt-12 px-5 grid grid-cols-2 gap-4">
       <div className="bg-white border border-slate-200 shadow-sm p-6 rounded-2xl flex flex-col justify-between aspect-square hover:border-primary/50 transition-colors">
-        <Dumbbell className="text-[#0b1c30] w-8 h-8" />
+        <Dumbbell className="text-[#00272C] w-8 h-8" />
         <div>
           <p className="text-4xl font-extrabold text-slate-900">
             {stats.totalMatches}
@@ -18,7 +18,7 @@ const StatsSection = () => {
           </p>
         </div>
       </div>
-      <div className="bg-[#0b1c30] p-6 rounded-2xl flex flex-col justify-between aspect-square shadow-lg relative overflow-hidden">
+      <div className="bg-[#00272C] p-6 rounded-2xl flex flex-col justify-between aspect-square shadow-lg relative overflow-hidden">
         <div className="absolute -right-4 -bottom-4 opacity-10">
           <Users className="w-24 h-24 text-white" />
         </div>

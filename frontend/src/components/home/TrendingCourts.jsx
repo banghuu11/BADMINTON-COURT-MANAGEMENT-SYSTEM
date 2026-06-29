@@ -94,7 +94,7 @@ const TrendingCourts = () => {
                       /giờ
                     </span>
                   </span>
-                  <button className="bg-white/5 hover:bg-primary hover:text-[#0b1c30] border border-white/10 hover:border-primary text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
+                  <button className="bg-white/5 hover:bg-primary hover:text-[#00272C] border border-white/10 hover:border-primary text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
                     Đặt Ngay
                   </button>
                 </div>

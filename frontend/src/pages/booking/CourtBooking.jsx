@@ -15,6 +15,8 @@ const CourtBooking = () => {
     playDate,
     pricingSlots,
     selectedTimeSlot,
+    selectedDuration,
+    durationOptions,
     matchType,
     selectedPositions,
     slots3D,
@@ -24,6 +26,7 @@ const CourtBooking = () => {
     isLoading,
     error,
     setPlayDate,
+    setSelectedDuration,
     setSelectedTimeSlot,
     setMatchType,
     handleTogglePosition,
@@ -92,13 +95,16 @@ const CourtBooking = () => {
             selectedTimeSlot={selectedTimeSlot}
             onTimeSlotChange={setSelectedTimeSlot}
             isSlotBooked={isSlotBooked}
+            selectedDuration={selectedDuration}
+            onDurationChange={setSelectedDuration}
+            durationOptions={durationOptions}
           />
 
           {/* Step 2 */}
           {selectedTimeSlot && (
             <div className="animate-fade-in pt-4 border-t border-slate-100">
               <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
-                <span className="bg-primary text-[#0b1c30] w-6 h-6 rounded-full flex items-center justify-center text-xs">
+                <span className="bg-primary text-[#00272C] w-6 h-6 rounded-full flex items-center justify-center text-xs">
                   2
                 </span>{" "}
                 Chọn vị trí trên sân 3D
@@ -107,19 +113,19 @@ const CourtBooking = () => {
               <div className="flex gap-2 mb-4">
                 <button
                   onClick={() => setMatchType("singles")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all ${matchType === "singles" ? "bg-[#0b1c30] text-primary" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all ${matchType === "singles" ? "bg-[#00272C] text-primary" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
                 >
                   <User className="w-4 h-4" /> Đánh Đơn
                 </button>
                 <button
                   onClick={() => setMatchType("doubles")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all ${matchType === "doubles" ? "bg-[#0b1c30] text-primary" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all ${matchType === "doubles" ? "bg-[#00272C] text-primary" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
                 >
                   <Users className="w-4 h-4" /> Đánh Đôi
                 </button>
                 <button
                   onClick={() => setMatchType("fullCourt")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all ${matchType === "fullCourt" ? "bg-[#0b1c30] text-primary" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all ${matchType === "fullCourt" ? "bg-[#00272C] text-primary" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
                 >
                   <Maximize className="w-4 h-4" /> Bao Sân
                 </button>
@@ -171,7 +177,7 @@ const CourtBooking = () => {
               <button
                 onClick={onConfirmBooking}
                 disabled={isLoading || !canBook}
-                className={`w-full mt-6 py-3 rounded-xl font-bold text-base transition-colors shadow-lg flex items-center justify-center gap-2 ${!canBook ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none" : "bg-primary text-[#0b1c30] hover:bg-[#a8d800] shadow-[0_0_15px_rgba(191,240,0,0.3)]"}`}
+                className={`w-full mt-6 py-3 rounded-xl font-bold text-base transition-colors shadow-lg flex items-center justify-center gap-2 ${!canBook ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none" : "bg-primary text-[#00272C] hover:bg-[#C6D632] shadow-[0_0_15px_rgba(225,255,81,0.3)]"}`}
               >
                 {isLoading ? (
                   "Đang xử lý..."

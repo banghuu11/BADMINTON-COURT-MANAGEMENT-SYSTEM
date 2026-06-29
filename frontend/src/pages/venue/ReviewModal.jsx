@@ -11,7 +11,7 @@ const ReviewModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#0b1c30]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-[#00272C]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl animate-fade-in">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -73,7 +73,7 @@ const ReviewModal = ({
             <button
               type="submit"
               disabled={submittingReview}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm text-[#0b1c30] bg-primary hover:bg-[#a8d800] transition-colors shadow-lg shadow-primary/20 flex items-center gap-2 ${submittingReview ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`px-5 py-2.5 rounded-xl font-bold text-sm text-[#00272C] bg-primary hover:bg-[#C6D632] transition-colors shadow-lg shadow-primary/20 flex items-center gap-2 ${submittingReview ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {submittingReview ? "Đang gửi..." : "Gửi đánh giá"}
             </button>

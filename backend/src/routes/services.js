@@ -6,18 +6,12 @@ const {
   deleteService,
 } = require("../controllers/serviceController");
 const { authenticateToken } = require("../middlewares/authMiddleware");
+const { requireRole, isOwnerOrAdmin } = require("../middlewares/roleMiddleware");
+const { isOwnerOfVenue } = require("../middlewares/venueOwnerMiddleware");
 const router = express.Router();
 
-// Lấy danh sách dịch vụ theo cơ sở
-router.get("/venue/:venueId", authenticateToken, getServicesByVenue);
-
-// Thêm sản phẩm/dịch vụ mới (Cần đăng nhập)
-router.post("/", authenticateToken, createService);
-
-// Cập nhật sản phẩm (Cần đăng nhập)
-router.put("/:serviceId", authenticateToken, updateService);
-
-// Xóa mềm sản phẩm (Cần đăng nhập)
-router.delete("/:serviceId", authenticateToken, deleteService);
-
+router.get("/venue/:venueId", getServicesByVenue);
+router.post("/", authenticateToken, isOwnerOrAdmin, createService);
+router.put("/:serviceId", authenticateToken, isOwnerOrAdmin, updateService);
+router.delete("/:serviceId", authenticateToken, isOwnerOrAdmin, deleteService);
 module.exports = router;

@@ -10,7 +10,7 @@ const Court3D = ({
 }) => {
   return (
     <div
-      className="lg:col-span-2 bg-[#0b1c30] rounded-3xl overflow-hidden relative min-h-[500px] flex items-center justify-center shadow-xl"
+      className="lg:col-span-2 bg-[#00272C] rounded-3xl overflow-hidden relative min-h-[500px] flex items-center justify-center shadow-xl"
       style={{ perspective: "1200px" }}
     >
       <div
@@ -85,8 +85,8 @@ const Court3D = ({
                     : isOccupied
                       ? "bg-red-500 text-white border-red-600 cursor-not-allowed opacity-90 scale-100 p-0 overflow-hidden"
                       : isSelected
-                        ? "bg-[#0b1c30] text-primary border-primary scale-110 shadow-[0_10px_20px_rgba(191,240,0,0.6)] cursor-pointer hover:-translate-y-2"
-                        : "bg-primary text-[#0b1c30] border-white cursor-pointer hover:scale-105 hover:bg-[#a8d800] hover:-translate-y-2 shadow-[0_10px_15px_rgba(0,0,0,0.5)]"
+                        ? "bg-[#00272C] text-primary border-primary scale-110 shadow-[0_10px_20px_rgba(225,255,81,0.6)] cursor-pointer hover:-translate-y-2"
+                        : "bg-primary text-[#00272C] border-white cursor-pointer hover:scale-105 hover:bg-[#C6D632] hover:-translate-y-2 shadow-[0_10px_15px_rgba(0,0,0,0.5)]"
                 }`}
                 title={
                   isOccupied

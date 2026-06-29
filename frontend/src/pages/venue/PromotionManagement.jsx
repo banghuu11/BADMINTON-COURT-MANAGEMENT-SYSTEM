@@ -46,7 +46,7 @@ const PromotionManagement = () => {
           <button
             onClick={() => openModal()}
             disabled={!selectedVenueId}
-            className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 ${!selectedVenueId ? "bg-slate-200 text-slate-400" : "bg-[#0b1c30] text-primary hover:bg-[#1a2c42]"}`}
+            className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 ${!selectedVenueId ? "bg-slate-200 text-slate-400" : "bg-[#00272C] text-primary hover:bg-[#1a2c42]"}`}
           >
             <Plus className="w-4 h-4" /> Tạo mới
           </button>

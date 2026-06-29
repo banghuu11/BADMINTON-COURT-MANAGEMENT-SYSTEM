@@ -25,7 +25,7 @@ const TrendingCourts = () => {
     <section className="mt-8 space-y-6">
       <div className="px-5 flex justify-between items-end">
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Activity className="text-[#0b1c30] bg-primary rounded-full p-1 w-7 h-7" />{" "}
+          <Activity className="text-[#00272C] bg-primary rounded-full p-1 w-7 h-7" />{" "}
           Sân Đang Hot
         </h2>
         <Link
@@ -80,7 +80,7 @@ const TrendingCourts = () => {
                       /giờ
                     </span>
                   </span>
-                  <button className="bg-slate-50 hover:bg-[#0b1c30] text-slate-700 hover:text-primary border border-slate-200 hover:border-[#0b1c30] text-xs font-bold px-4 py-2 rounded-lg transition-colors">
+                  <button className="bg-slate-50 hover:bg-[#00272C] text-slate-700 hover:text-primary border border-slate-200 hover:border-[#00272C] text-xs font-bold px-4 py-2 rounded-lg transition-colors">
                     Đặt Ngay
                   </button>
                 </div>

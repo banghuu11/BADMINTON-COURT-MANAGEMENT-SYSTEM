@@ -14,7 +14,7 @@ const VenueImageModal = ({ isOpen, onClose, venue }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#0b1c30]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-[#00272C]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto no-scrollbar">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">

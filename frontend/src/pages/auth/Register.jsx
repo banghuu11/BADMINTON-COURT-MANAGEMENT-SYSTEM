@@ -116,7 +116,7 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-[#0b1c30] text-primary font-bold py-3 px-4 rounded-lg hover:bg-[#1a2c42] transition duration-200 mt-2 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`w-full bg-[#00272C] text-primary font-bold py-3 px-4 rounded-lg hover:bg-[#1a2c42] transition duration-200 mt-2 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {loading ? "Đang xử lý..." : "Đăng Ký Thành Viên"}
           </button>

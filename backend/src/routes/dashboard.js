@@ -5,16 +5,13 @@ const {
   getPublicStats,
 } = require("../controllers/dashboardController");
 const { authenticateToken } = require("../middlewares/authMiddleware");
-const { isAdmin } = require("../middlewares/roleMiddleware");
+const { requireRole } = require("../middlewares/roleMiddleware");
 const router = express.Router();
 
-// Thống kê Public cho trang chủ (Ai cũng xem được)
 router.get("/public", getPublicStats);
 
-// Dashboard Admin (Chỉ Admin xem được)
-router.get("/admin", authenticateToken, isAdmin, getAdminDashboard);
+router.get("/admin", authenticateToken, requireRole([1]), getAdminDashboard);
 
-// Dashboard Chủ sân (CourtOwner xem được)
-router.get("/owner", authenticateToken, getOwnerDashboard);
+router.get("/owner", authenticateToken, requireRole([1, 2]), getOwnerDashboard);
 
 module.exports = router;

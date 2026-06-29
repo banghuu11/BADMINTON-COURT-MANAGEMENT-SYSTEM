@@ -44,7 +44,7 @@ const CourtManagement = () => {
           <button
             onClick={openModal}
             disabled={!selectedVenueId}
-            className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 ${!selectedVenueId ? "bg-slate-200 text-slate-400" : "bg-primary text-[#0b1c30] hover:bg-[#a8d800] shadow-lg shadow-primary/20"}`}
+            className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 ${!selectedVenueId ? "bg-slate-200 text-slate-400" : "bg-primary text-[#00272C] hover:bg-[#C6D632] shadow-lg shadow-primary/20"}`}
           >
             <Plus className="w-4 h-4" /> Thêm sân
           </button>

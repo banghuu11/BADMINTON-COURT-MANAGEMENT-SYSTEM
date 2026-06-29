@@ -1,10 +1,19 @@
 @import "tailwindcss";
-
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL,GRAD,opsz@100..700,0..1,0,24&display=swap");
 
+@theme {
+  --color-primary: #e1ff51;
+  --color-primary-hover: #c6d632;
+  --color-background: #00272c;
+  --color-surface: #00272c;
+  --color-on-primary: #00272c;
+  --color-on-background: #ffffff;
+  --color-secondary: #5d5e61;
+}
+
 body {
-  background-color: #0b1c30;
+  background-color: #00272C;
   color: #ffffff;
   overflow-x: hidden;
   font-family: "Inter", sans-serif;
@@ -26,13 +35,13 @@ body {
 }
 
 .glass-dark {
-  background: rgba(11, 28, 48, 0.8);
+  background: rgba(0, 39, 44, 0.8);
   backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .neon-border {
-  box-shadow: 0 0 15px rgba(191, 240, 0, 0.3);
+  box-shadow: 0 0 15px rgba(225, 255, 81, 0.3);
 }
 
 .no-scrollbar::-webkit-scrollbar {

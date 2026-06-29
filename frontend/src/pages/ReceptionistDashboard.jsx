@@ -233,7 +233,7 @@ const ReceptionistDashboard = () => {
         );
       case "Playing":
         return (
-          <span className="bg-primary/20 text-[#0b1c30] px-3 py-1 rounded-md text-xs font-bold border border-primary/30 uppercase">
+          <span className="bg-primary/20 text-[#00272C] px-3 py-1 rounded-md text-xs font-bold border border-primary/30 uppercase">
             Đang chơi
           </span>
         );
@@ -360,7 +360,7 @@ const ReceptionistDashboard = () => {
                   {slot.slotstatus === "NotStarted" && (
                     <button
                       onClick={() => handleCheckIn(slot.slotid)}
-                      className="flex-1 md:flex-none bg-[#0b1c30] text-primary px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[#1a2c42] transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 md:flex-none bg-[#00272C] text-primary px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[#1a2c42] transition-colors flex items-center justify-center gap-2"
                     >
                       <CheckCircle className="w-4 h-4" /> Check In
                     </button>
@@ -376,7 +376,7 @@ const ReceptionistDashboard = () => {
                       </button>
                       <button
                         onClick={() => handleCheckOut(slot.slotid)}
-                        className="flex-1 md:flex-none bg-primary text-[#0b1c30] px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[#a8d800] transition-colors shadow-[0_0_15px_rgba(191,240,0,0.3)] flex items-center justify-center gap-2"
+                        className="flex-1 md:flex-none bg-primary text-[#00272C] px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[#C6D632] transition-colors shadow-[0_0_15px_rgba(225,255,81,0.3)] flex items-center justify-center gap-2"
                       >
                         <LogOut className="w-4 h-4" /> Check Out
                       </button>

@@ -20,6 +20,7 @@ export const useRegister = () => {
       phoneNumber: "",
       email: "",
       confirmPassword: "",
+      roleName: "Customer",
     },
   });
 

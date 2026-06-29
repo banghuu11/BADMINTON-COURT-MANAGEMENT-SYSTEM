@@ -148,6 +148,7 @@ export const useCourtBooking = (courtId: string | undefined) => {
                 avatarUrl: (bookedSlot as any).avatarurl,
                 fullName:
                   (bookedSlot as any).fullname || (bookedSlot as any).guestname,
+                skillLevel: (bookedSlot as any).skilllevel || (bookedSlot as any).SkillLevel || null,
               });
             }
             return acc;

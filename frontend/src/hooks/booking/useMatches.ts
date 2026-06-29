@@ -67,7 +67,11 @@ export const useVenues = () => {
     queryKey: ["allVenues"],
     queryFn: async () => {
       const data = await apiFetch("/venues/all");
-      return data.venues || [];
+      return (data.venues || []).map((venue: any) => ({
+        ...venue,
+        venueId: venue.venueid ?? venue.VenueId,
+        venueName: venue.venuename ?? venue.VenueName,
+      }));
     },
   });
 };
@@ -79,7 +83,11 @@ export const useCourtsByVenue = (venueId: string) => {
     queryFn: async () => {
       if (!venueId) return [];
       const data = await apiFetch(`/courts/venue/${venueId}`);
-      return data.courts || [];
+      return (data.courts || []).map((court: any) => ({
+        ...court,
+        courtId: court.courtid ?? court.CourtId,
+        courtName: court.courtname ?? court.CourtName,
+      }));
     },
     enabled: !!venueId, // Chỉ gọi API khi đã có venueId
   });

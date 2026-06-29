@@ -14,4 +14,5 @@ export const authService = {
     }),
 
   getProfile: () => apiFetch("/auth/profile", { method: "GET" }),
+  updateProfile: (formData) => apiFetch("/auth/profile", { method: "PUT", body: formData }),
 };

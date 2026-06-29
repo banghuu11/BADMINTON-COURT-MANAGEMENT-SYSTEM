@@ -1,5 +1,17 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
+import useAuthStore from "../store/useAuthStore";
+import {
+  MapPin,
+  Calendar,
+  Clock,
+  Award,
+  Plus,
+  Users,
+  AlertCircle,
+  Sparkles,
+  Building2,
+} from "lucide-react";
 import {
   useMatches,
   useVenues,
@@ -7,6 +19,7 @@ import {
 } from "../hooks/booking/useMatches";
 
 const MatchesPage = () => {
+  const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
   const { matches, isLoading, joinMatch, createMatch, isJoining, isCreating } =
     useMatches();
@@ -23,6 +36,10 @@ const MatchesPage = () => {
   const { data: venues = [] } = useVenues();
   const { data: courts = [], isLoading: isLoadingCourts } =
     useCourtsByVenue(selectedVenueId);
+
+  if (user && (user.roleid === 1 || user.roleId === 1)) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleJoin = (waitId: string) => {
     if (window.confirm("Bạn có chắc chắn muốn tham gia trận đấu này?")) {
@@ -43,20 +60,34 @@ const MatchesPage = () => {
 
   if (isLoading)
     return (
-      <div className="text-center mt-10">Đang tải dữ liệu giao lưu...</div>
+      <div className="flex flex-col items-center justify-center py-20 gap-3 min-h-[500px]">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-400 text-sm font-semibold">Đang tải dữ liệu giao lưu...</p>
+      </div>
     );
 
   return (
-    <div className="container mx-auto p-4 max-w-5xl">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Cộng đồng Giao lưu / Kèo ghép
-        </h1>
+    <div className="max-w-7xl mx-auto px-5 py-8 pb-24 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+        <div>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            Cộng đồng <span className="text-primary">Giao Lưu & Ghép Kèo</span>
+          </h1>
+          <p className="text-slate-400 mt-1 text-sm">
+            Kết nối đam mê, tìm đồng đội và đối thủ chơi cầu lông cùng trình độ.
+          </p>
+        </div>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+          className="bg-primary hover:bg-primary-hover text-on-primary font-bold px-5 py-3 rounded-xl transition-all shadow-lg active:scale-95 flex items-center gap-2 cursor-pointer"
         >
-          {showCreateForm ? "Hủy tạo" : "+ Đăng tin tìm người"}
+          {showCreateForm ? "Hủy tạo" : (
+            <>
+              <Plus className="w-5 h-5" strokeWidth={2.5} />
+              Đăng tin tìm người
+            </>
+          )}
         </button>
       </div>
 
@@ -64,62 +95,63 @@ const MatchesPage = () => {
       {showCreateForm && (
         <form
           onSubmit={handleCreate}
-          className="bg-white p-5 rounded-lg mb-6 shadow-md border"
+          className="bg-background/40 backdrop-blur-xl border border-white/10 p-6 sm:p-8 rounded-3xl mb-10 shadow-2xl relative overflow-hidden animate-fade-in"
         >
-          <h2 className="text-lg mb-4 font-semibold text-gray-700">
-            Tạo kèo ghép mới
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-emerald-400 opacity-80"></div>
+          <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" /> Tạo kèo ghép mới
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
             <div>
-              <label className="block text-sm font-medium mb-1">Cơ sở</label>
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Cơ sở</label>
               <select
                 required
-                className="w-full border border-gray-300 p-2 rounded bg-white"
+                className="w-full bg-background border border-white/10 p-3 rounded-xl text-sm focus:outline-none focus:border-primary text-white transition-colors"
                 value={selectedVenueId}
                 onChange={(e) => {
                   setSelectedVenueId(e.target.value);
                   setFormData({ ...formData, courtId: "" }); // Reset chọn sân khi đổi cơ sở
                 }}
               >
-                <option value="" disabled>
+                <option value="" disabled className="text-slate-500">
                   -- Chọn cơ sở --
                 </option>
                 {venues?.map((v: any) => (
-                  <option key={v.VenueId} value={v.VenueId}>
-                    {v.VenueName}
+                  <option key={v.venueId} value={v.venueId} className="bg-[#00272c] text-white">
+                    {v.venueName}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Sân</label>
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Sân</label>
               <select
                 required
                 disabled={!selectedVenueId || isLoadingCourts}
-                className="w-full border border-gray-300 p-2 rounded bg-white disabled:bg-gray-100 disabled:text-gray-400"
+                className="w-full bg-background border border-white/10 p-3 rounded-xl text-sm focus:outline-none focus:border-primary text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 value={formData.courtId}
                 onChange={(e) =>
                   setFormData({ ...formData, courtId: e.target.value })
                 }
               >
-                <option value="" disabled>
+                <option value="" disabled className="text-slate-500">
                   -- Chọn sân --
                 </option>
                 {courts?.map((c: any) => (
-                  <option key={c.CourtId} value={c.CourtId}>
-                    {c.CourtName}
+                  <option key={c.courtId} value={c.courtId} className="bg-[#00272c] text-white">
+                    {c.courtName}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Ngày chơi
               </label>
               <input
                 type="date"
                 required
-                className="w-full border border-gray-300 p-2 rounded"
+                className="w-full bg-background border border-white/10 p-2.5 rounded-xl text-sm focus:outline-none focus:border-primary text-white transition-colors"
                 value={formData.playDate}
                 onChange={(e) =>
                   setFormData({ ...formData, playDate: e.target.value })
@@ -127,13 +159,13 @@ const MatchesPage = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Giờ bắt đầu
               </label>
               <input
                 type="time"
                 required
-                className="w-full border border-gray-300 p-2 rounded"
+                className="w-full bg-background border border-white/10 p-2.5 rounded-xl text-sm focus:outline-none focus:border-primary text-white transition-colors"
                 value={formData.startTime}
                 onChange={(e) =>
                   setFormData({ ...formData, startTime: e.target.value })
@@ -141,13 +173,13 @@ const MatchesPage = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Giờ kết thúc
               </label>
               <input
                 type="time"
                 required
-                className="w-full border border-gray-300 p-2 rounded"
+                className="w-full bg-background border border-white/10 p-2.5 rounded-xl text-sm focus:outline-none focus:border-primary text-white transition-colors"
                 value={formData.endTime}
                 onChange={(e) =>
                   setFormData({ ...formData, endTime: e.target.value })
@@ -158,7 +190,7 @@ const MatchesPage = () => {
           <button
             type="submit"
             disabled={isCreating}
-            className="mt-4 bg-green-600 text-white px-6 py-2 rounded shadow hover:bg-green-700 disabled:opacity-50"
+            className="mt-6 bg-primary hover:bg-primary-hover text-on-primary font-bold px-6 py-3 rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
           >
             {isCreating ? "Đang xử lý..." : "Xác nhận tạo kèo"}
           </button>
@@ -168,77 +200,111 @@ const MatchesPage = () => {
       {/* Danh sách kèo ghép */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {!matches || matches.length === 0 ? (
-          <p className="text-gray-500 col-span-full text-center py-10 bg-gray-50 rounded-lg">
-            Hiện tại chưa có ai tìm người giao lưu. Bạn hãy là người đầu tiên
-            tạo kèo!
-          </p>
+          <div className="max-w-md mx-auto col-span-full text-center py-16 px-6 bg-background/20 rounded-3xl border border-white/10 backdrop-blur-md">
+            <AlertCircle className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-white mb-1">Chưa có ai tìm giao lưu</h3>
+            <p className="text-slate-400 text-sm mb-6">
+              Hiện tại chưa có ai đăng tin tìm người chơi ghép kèo. Hãy là người đầu tiên tạo kèo!
+            </p>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="bg-primary hover:bg-primary-hover text-on-primary font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg text-sm inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" strokeWidth={2.5} /> Tạo kèo ngay
+            </button>
+          </div>
         ) : (
           matches?.map((match: any) => (
             <div
               key={match.waitid}
-              className="border border-gray-200 p-5 rounded-xl shadow-sm bg-white hover:shadow-md transition"
+              className="relative overflow-hidden rounded-3xl border border-white/10 bg-background/40 backdrop-blur-xl shadow-xl hover:border-primary/30 transition-all duration-300 group hover:-translate-y-1 p-6 flex flex-col justify-between min-h-[340px]"
             >
-              <div className="flex items-center space-x-3 mb-4">
-                <img
-                  src={
-                    match.avatarurl ||
-                    "https://ui-avatars.com/api/?name=" + match.fullname
-                  }
-                  alt={match.fullname}
-                  className="w-12 h-12 rounded-full border border-gray-300"
-                />
-                <div>
-                  <h3 className="font-semibold text-gray-800">
-                    {match.fullname}
-                  </h3>
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                    Đang tìm đồng đội
-                  </span>
+              <div>
+                <div className="flex items-center space-x-3 mb-5 border-b border-white/5 pb-4">
+                  <img
+                    src={
+                      match.avatarurl ||
+                      "https://ui-avatars.com/api/?background=e1ff51&color=00272c&bold=true&name=" + encodeURIComponent(match.fullname)
+                    }
+                    alt={match.fullname}
+                    className="w-12 h-12 rounded-full border border-primary/20 object-cover"
+                  />
+                  <div>
+                    <h3 className="font-bold text-white group-hover:text-primary transition-colors">
+                      {match.fullname}
+                    </h3>
+                    <span className="inline-block mt-1 bg-primary/10 border border-primary/20 text-[10px] text-primary px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                      Đang tìm đồng đội
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-xs space-y-3 mb-6 text-slate-300">
+                  <div className="flex items-start gap-2">
+                    <Building2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <strong className="text-white block mb-0.5">Cơ sở:</strong>
+                      <span className="text-slate-400">{match.venuename}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <strong className="text-white block mb-0.5">Địa chỉ:</strong>
+                      <span className="text-slate-400 line-clamp-1">{match.address}</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-start gap-2">
+                      <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <strong className="text-white block mb-0.5">Sân:</strong>
+                        <span className="text-slate-400">{match.courtname}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Award className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <strong className="text-white block mb-0.5">Trình độ:</strong>
+                        <span className="text-slate-400">{match.skilllevel || "Chưa cập nhật"}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-start gap-2">
+                      <Calendar className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <strong className="text-white block mb-0.5">Ngày chơi:</strong>
+                        <span className="text-slate-400">{new Date(match.playdate).toLocaleDateString("vi-VN")}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Clock className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <strong className="text-white block mb-0.5">Thời gian:</strong>
+                        <span className="text-primary font-bold">
+                          {match.starttime?.slice(0, 5)} - {match.endtime?.slice(0, 5)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="text-sm space-y-2 mb-5 text-gray-600">
-                <p>
-                  <strong className="text-gray-800">Cơ sở:</strong>{" "}
-                  {match.venuename}
-                </p>
-                <p>
-                  <strong className="text-gray-800">Địa chỉ:</strong>{" "}
-                  {match.address}
-                </p>
-                <p>
-                  <strong className="text-gray-800">Sân:</strong>{" "}
-                  {match.courtname}
-                </p>
-                <p>
-                  <strong className="text-gray-800">Ngày:</strong>{" "}
-                  {new Date(match.playdate).toLocaleDateString("vi-VN")}
-                </p>
-                <p>
-                  <strong className="text-gray-800">Thời gian:</strong>{" "}
-                  <span className="text-green-600 font-medium">
-                    {match.starttime?.slice(0, 5)} -{" "}
-                    {match.endtime?.slice(0, 5)}
-                  </span>
-                </p>
-                <p>
-                  <strong className="text-gray-800">Trình độ:</strong>{" "}
-                  <span className="text-gray-600">
-                    {match.skilllevel || "Chưa cập nhật"}
-                  </span>
-                </p>
-              </div>
-              <div className="flex gap-2">
+
+              <div className="flex gap-3 mt-auto pt-4 border-t border-white/5">
                 <button
                   onClick={() => handleJoin(match.waitid)}
                   disabled={isJoining}
-                  className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 font-medium transition disabled:opacity-50"
+                  className="flex-1 bg-primary text-on-primary py-3 rounded-xl hover:bg-primary-hover font-bold text-xs transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-primary/5"
                 >
+                  <Users className="w-4 h-4" />
                   {isJoining ? "Đang xử lý..." : "Tham gia ngay"}
                 </button>
                 <button
                   onClick={() => navigate(`/booking/${match.courtid}`)}
-                  className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 font-medium transition"
+                  className="flex-1 bg-white/5 text-white hover:bg-white/10 border border-white/10 py-3 rounded-xl font-bold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
+                  <Calendar className="w-4 h-4" />
                   Đến đặt sân
                 </button>
               </div>

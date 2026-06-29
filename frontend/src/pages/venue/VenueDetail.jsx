@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
+import useAuthStore from "../../store/useAuthStore";
 import {
   MapPin,
   Star,
@@ -13,6 +14,11 @@ import {
 import { apiFetch } from "../../services/api";
 
 const VenueDetail = () => {
+  const user = useAuthStore((state) => state.user);
+  if (user && (user.roleid === 1 || user.roleId === 1)) {
+    return <Navigate to="/" replace />;
+  }
+
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState("courts"); // courts, services, reviews
 
@@ -77,7 +83,7 @@ const VenueDetail = () => {
             className="absolute inset-0 w-full h-full object-cover opacity-70"
           />
         ) : (
-          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/40 via-[#0b1c30] to-[#0b1c30]"></div>
+          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/40 via-[#00272C] to-[#00272C]"></div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-slate-900/20 to-transparent"></div>
       </div>
@@ -178,7 +184,7 @@ const VenueDetail = () => {
                       </p>
                       <Link
                         to={`/booking/${court.courtid}`}
-                        className="inline-block bg-slate-100 hover:bg-primary text-slate-700 hover:text-[#0b1c30] px-4 py-2 rounded-lg text-xs font-bold transition-colors"
+                        className="inline-block bg-slate-100 hover:bg-primary text-slate-700 hover:text-[#00272C] px-4 py-2 rounded-lg text-xs font-bold transition-colors"
                       >
                         Chọn giờ
                       </Link>

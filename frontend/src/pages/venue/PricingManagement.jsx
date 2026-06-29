@@ -81,7 +81,7 @@ const PricingManagement = () => {
           <button
             onClick={openModal}
             disabled={!selectedCourtId}
-            className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors ${!selectedCourtId ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-[#0b1c30] text-primary hover:bg-[#1a2c42] shadow-sm"}`}
+            className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors ${!selectedCourtId ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-[#00272C] text-primary hover:bg-[#1a2c42] shadow-sm"}`}
           >
             <Plus className="w-4 h-4" /> Thêm Giá
           </button>

@@ -3,9 +3,11 @@ const {
   register,
   login,
   getProfile,
+  updateProfile,
   refreshToken,
 } = require("../controllers/authController");
 const { authenticateToken } = require("../middlewares/authMiddleware");
+const upload = require("../middlewares/uploadMiddleware");
 const router = express.Router();
 
 // ==========================================
@@ -24,7 +26,12 @@ router.post("/login", login);
 router.get("/profile", authenticateToken, getProfile);
 
 // ==========================================
-// 4. REFRESH TOKEN (POST /api/auth/refresh)
+// 4. CẬP NHẬT THÔNG TIN CÁ NHÂN (PUT /api/auth/profile)
+// ==========================================
+router.put("/profile", authenticateToken, upload.single("avatar"), updateProfile);
+
+// ==========================================
+// 5. REFRESH TOKEN (POST /api/auth/refresh)
 // ==========================================
 router.post("/refresh", refreshToken);
 

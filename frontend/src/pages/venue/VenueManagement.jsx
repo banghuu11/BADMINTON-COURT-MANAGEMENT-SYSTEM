@@ -34,7 +34,7 @@ const VenueManagement = () => {
         </div>
         <button
           onClick={openModal}
-          className="px-5 py-2.5 bg-primary text-[#0b1c30] hover:bg-[#a8d800] rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 transition-colors"
+          className="px-5 py-2.5 bg-primary text-[#00272C] hover:bg-[#C6D632] rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 transition-colors"
         >
           <Plus className="w-4 h-4" /> Thêm chi nhánh
         </button>
@@ -67,7 +67,7 @@ const VenueManagement = () => {
             </p>
             <button
               onClick={openModal}
-              className="bg-primary text-[#0b1c30] px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[#a8d800] transition-colors inline-flex items-center gap-2 shadow-sm"
+              className="bg-primary text-[#00272C] px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[#C6D632] transition-colors inline-flex items-center gap-2 shadow-sm"
             >
               <Plus className="w-4 h-4" /> Thêm cơ sở đầu tiên
             </button>

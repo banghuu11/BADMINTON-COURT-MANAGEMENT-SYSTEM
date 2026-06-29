@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Menu, UserCircle } from "lucide-react";
+import NotificationPopup from "./NotificationPopup";
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -14,7 +15,7 @@ const Header = () => {
     <header
       className={`fixed top-0 w-full z-50 transition-all duration-300 backdrop-blur-lg border-b flex items-center justify-between px-5 h-16 ${
         scrolled
-          ? "bg-[#0b1c30]/80 border-white/10 shadow-lg"
+          ? "bg-[#00272C]/80 border-white/10 shadow-lg"
           : "bg-transparent border-transparent"
       }`}
     >
@@ -24,8 +25,11 @@ const Header = () => {
           CourtLink
         </span>
       </div>
-      <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center cursor-pointer active:scale-95 transition-all border border-primary/30 hover:bg-primary/20 shadow-[0_0_10px_rgba(191,240,0,0.15)]">
-        <UserCircle className="w-6 h-6" />
+      <div className="flex items-center gap-4">
+        <NotificationPopup />
+        <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center cursor-pointer active:scale-95 transition-all border border-primary/30 hover:bg-primary/20 shadow-[0_0_10px_rgba(225,255,81,0.15)]">
+          <UserCircle className="w-6 h-6" />
+        </div>
       </div>
     </header>
   );

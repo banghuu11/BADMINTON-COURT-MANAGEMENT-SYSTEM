@@ -28,6 +28,26 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
+const optionalAuthenticateToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    // Nếu token lỗi hoặc hết hạn, coi như khách vãng lai và không chặn
+    next();
+  }
+};
+
 module.exports = {
   authenticateToken,
+  optionalAuthenticateToken,
 };
+

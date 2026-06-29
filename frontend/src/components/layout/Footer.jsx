@@ -10,14 +10,14 @@ import {
 
 const Footer = () => {
   return (
-    <footer className="bg-[#0b1c30] text-slate-300 pt-16 pb-8 border-t border-white/10">
+    <footer className="bg-[#00272C] text-slate-300 pt-16 pb-8 border-t border-white/10">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           {/* Brand & Giới thiệu */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center transform rotate-3 shadow-[0_0_10px_rgba(191,240,0,0.3)]">
-                <span className="text-[#0b1c30] font-black text-lg -rotate-3">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center transform rotate-3 shadow-[0_0_10px_rgba(225,255,81,0.3)]">
+                <span className="text-[#00272C] font-black text-lg -rotate-3">
                   C
                 </span>
               </div>
@@ -32,19 +32,19 @@ const Footer = () => {
             <div className="flex items-center gap-4 pt-2">
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#0b1c30] transition-colors border border-white/10 hover:border-primary"
+                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#00272C] transition-colors border border-white/10 hover:border-primary"
               >
                 <Globe className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#0b1c30] transition-colors border border-white/10 hover:border-primary"
+                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#00272C] transition-colors border border-white/10 hover:border-primary"
               >
                 <MessageCircle className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#0b1c30] transition-colors border border-white/10 hover:border-primary"
+                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#00272C] transition-colors border border-white/10 hover:border-primary"
               >
                 <Share2 className="w-4 h-4" />
               </a>

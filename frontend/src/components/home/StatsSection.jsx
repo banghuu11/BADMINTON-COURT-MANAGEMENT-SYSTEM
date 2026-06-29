@@ -28,8 +28,8 @@ const StatsSection = () => {
           </p>
         </div>
       </div>
-      <div className="bg-gradient-to-br from-primary to-[#9acc00] p-6 rounded-2xl flex flex-col justify-between aspect-square shadow-[0_5px_20px_rgba(191,240,0,0.3)]">
-        <Users className="text-[#0b1c30] w-8 h-8" />
+      <div className="bg-gradient-to-br from-primary to-primary-hover p-6 rounded-2xl flex flex-col justify-between aspect-square shadow-[0_5px_20px_rgba(225,255,81,0.3)]">
+        <Users className="text-on-primary w-8 h-8" />
         <div>
           <p className="text-4xl font-bold text-on-primary">
             {stats.totalUsers}

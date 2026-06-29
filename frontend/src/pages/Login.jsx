@@ -6,8 +6,8 @@ const Login = () => {
   const { formRegister, handleSubmit, errors, apiError, loading } = useLogin();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0b1c30] p-4">
-      <div className="max-w-md w-full bg-[#1a2c42]/60 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="max-w-md w-full bg-background/80 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
         <h2 className="text-3xl font-bold text-center text-white mb-6">
           Đăng nhập
         </h2>
@@ -64,7 +64,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-primary text-[#0b1c30] font-bold py-3 px-4 rounded-xl hover:bg-[#a8d800] transition-all duration-200 shadow-lg shadow-primary/20 ${
+            className={`w-full bg-primary text-on-primary font-bold py-3 px-4 rounded-xl hover:bg-primary-hover transition-all duration-200 shadow-lg shadow-primary/20 ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >

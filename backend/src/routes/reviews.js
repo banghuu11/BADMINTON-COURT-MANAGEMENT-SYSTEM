@@ -5,15 +5,11 @@ const {
   replyToReview,
 } = require("../controllers/reviewController");
 const { authenticateToken } = require("../middlewares/authMiddleware");
+const { isOwnerOrAdmin } = require("../middlewares/roleMiddleware");
 const router = express.Router();
 
-// Đăng đánh giá mới (Cần đăng nhập)
 router.post("/", authenticateToken, createReview);
-
-// Lấy danh sách đánh giá của một cơ sở (Public API - Ai cũng xem được)
 router.get("/venue/:venueId", getVenueReviews);
-
-// Chủ sân trả lời đánh giá
-router.patch("/:reviewId/reply", authenticateToken, replyToReview);
+router.patch("/:reviewId/reply", authenticateToken, isOwnerOrAdmin, replyToReview);
 
 module.exports = router;

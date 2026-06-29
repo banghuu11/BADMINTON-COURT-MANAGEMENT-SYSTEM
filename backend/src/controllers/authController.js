@@ -8,7 +8,7 @@ const REFRESH_SECRET =
 
 // [POST] /api/auth/register
 const register = async (req, res) => {
-  const { username, password, fullName, phoneNumber, email } = req.body;
+  const { username, password, fullName, phoneNumber, email, roleName } = req.body;
 
   // Kiểm tra dữ liệu đầu vào cơ bản
   if (!username || !password || !fullName || !phoneNumber) {
@@ -30,15 +30,25 @@ const register = async (req, res) => {
         .json({ error: "Tên đăng nhập hoặc Số điện thoại đã tồn tại!" });
     }
 
-    // 2. Lấy RoleId của 'Customer' (Khách hàng)
+    // 2. Lấy RoleId theo roleName (nếu truyền vào) hoặc mặc định là 'Customer'
+    const targetRole = roleName || "Customer";
     const roleCheck = await pool.query(
       `SELECT RoleId FROM Role WHERE RoleName = $1`,
-      ["Customer"],
+      [targetRole],
     );
 
     let roleId = 5;
     if (roleCheck.rows.length > 0) {
       roleId = roleCheck.rows[0].roleid;
+    } else {
+      // Fallback nếu không tìm thấy roleName truyền vào
+      const defaultRoleCheck = await pool.query(
+        `SELECT RoleId FROM Role WHERE RoleName = $1`,
+        ["Customer"],
+      );
+      if (defaultRoleCheck.rows.length > 0) {
+        roleId = defaultRoleCheck.rows[0].roleid;
+      }
     }
 
     // 3. Mã hóa mật khẩu
@@ -121,7 +131,7 @@ const getProfile = async (req, res) => {
     const userId = req.user.userId;
 
     const result = await pool.query(
-      `SELECT UserId, Username, FullName, PhoneNumber, Email, RoleId, AvatarUrl, IsActive, SkillLevel
+      `SELECT UserId, Username, FullName, PhoneNumber, Email, RoleId, AvatarUrl, IsActive, SkillLevel, DateOfBirth, Gender, Address
        FROM AppUser WHERE UserId = $1`,
       [userId],
     );
@@ -136,6 +146,101 @@ const getProfile = async (req, res) => {
     res
       .status(500)
       .json({ error: "Lỗi server khi lấy thông tin.", details: error.message });
+  }
+};
+
+// [PUT] /api/auth/profile
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { fullName, phoneNumber, email, address, dateOfBirth, gender, skillLevel } = req.body;
+
+    // 1. Kiểm tra thông tin bắt buộc
+    if (!fullName || !phoneNumber) {
+      return res.status(400).json({ error: "Họ tên và Số điện thoại là bắt buộc!" });
+    }
+
+    // 2. Kiểm tra trùng số điện thoại
+    const phoneCheck = await pool.query(
+      `SELECT UserId FROM AppUser WHERE PhoneNumber = $1 AND UserId <> $2`,
+      [phoneNumber, userId]
+    );
+    if (phoneCheck.rows.length > 0) {
+      return res.status(400).json({ error: "Số điện thoại đã được sử dụng bởi tài khoản khác!" });
+    }
+
+    // 3. Kiểm tra trùng email
+    if (email) {
+      const emailCheck = await pool.query(
+        `SELECT UserId FROM AppUser WHERE Email = $1 AND UserId <> $2`,
+        [email, userId]
+      );
+      if (emailCheck.rows.length > 0) {
+        return res.status(400).json({ error: "Email đã được sử dụng bởi tài khoản khác!" });
+      }
+    }
+
+    // 4. Nếu có file upload, tạo đường dẫn ảnh đại diện mới
+    let avatarUrl = null;
+    if (req.file) {
+      avatarUrl = `http://localhost:8080/uploads/${req.file.filename}`;
+    }
+
+    let updateQuery;
+    let queryParams;
+
+    if (avatarUrl) {
+      updateQuery = `
+        UPDATE AppUser 
+        SET FullName = $1, PhoneNumber = $2, Email = $3, Address = $4, DateOfBirth = $5, Gender = $6, SkillLevel = $7, AvatarUrl = $8, UpdatedAt = CURRENT_TIMESTAMP
+        WHERE UserId = $9
+        RETURNING UserId, Username, FullName, PhoneNumber, Email, RoleId, AvatarUrl, IsActive, SkillLevel, DateOfBirth, Gender, Address
+      `;
+      queryParams = [
+        fullName,
+        phoneNumber,
+        email || null,
+        address || null,
+        dateOfBirth || null,
+        gender || null,
+        skillLevel || 'Trung bình',
+        avatarUrl,
+        userId
+      ];
+    } else {
+      updateQuery = `
+        UPDATE AppUser 
+        SET FullName = $1, PhoneNumber = $2, Email = $3, Address = $4, DateOfBirth = $5, Gender = $6, SkillLevel = $7, UpdatedAt = CURRENT_TIMESTAMP
+        WHERE UserId = $8
+        RETURNING UserId, Username, FullName, PhoneNumber, Email, RoleId, AvatarUrl, IsActive, SkillLevel, DateOfBirth, Gender, Address
+      `;
+      queryParams = [
+        fullName,
+        phoneNumber,
+        email || null,
+        address || null,
+        dateOfBirth || null,
+        gender || null,
+        skillLevel || 'Trung bình',
+        userId
+      ];
+    }
+
+    const updatedUser = await pool.query(updateQuery, queryParams);
+
+    if (updatedUser.rows.length === 0) {
+      return res.status(404).json({ error: "Không tìm thấy người dùng!" });
+    }
+
+    res.json({
+      message: "Cập nhật hồ sơ thành công!",
+      user: updatedUser.rows[0]
+    });
+  } catch (error) {
+    console.error("Lỗi updateProfile:", error);
+    res
+      .status(500)
+      .json({ error: "Lỗi server khi cập nhật hồ sơ.", details: error.message });
   }
 };
 
@@ -166,5 +271,6 @@ module.exports = {
   register,
   login,
   getProfile,
+  updateProfile,
   refreshToken,
 };

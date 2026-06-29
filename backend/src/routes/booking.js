@@ -8,40 +8,34 @@ const {
   cancelBooking,
   addServiceToBooking,
   getOpenMatches,
+  createMatch,
+  joinMatch,
   getCourtSchedule,
   getVenueBookingsToday,
+  validatePromotionEndpoint,
 } = require("../controllers/bookingController");
-const { authenticateToken } = require("../middlewares/authMiddleware");
+const { authenticateToken, optionalAuthenticateToken } = require("../middlewares/authMiddleware");
+const { requireRole, isStaffOrAbove, isOwnerOrAdmin } = require("../middlewares/roleMiddleware");
 const router = express.Router();
 
-// Kiểm tra sân trống (Public)
 router.get("/available", checkAvailability);
-
-// Lấy danh sách tìm bạn giao lưu (Public)
 router.get("/matches", getOpenMatches);
-
-// Lấy lịch đã đặt của sân (Public)
 router.get("/court-schedule", getCourtSchedule);
 
-// Lấy danh sách booking của cơ sở theo ngày (Cho Lễ tân/Chủ sân)
-router.get("/venue/:venueId/today", authenticateToken, getVenueBookingsToday);
+router.get("/venue/:venueId/today", authenticateToken, isStaffOrAbove, getVenueBookingsToday);
 
-// Tạo đơn đặt sân mới (Cần đăng nhập)
 router.post("/", authenticateToken, createBooking);
+router.post("/validate-promotion", optionalAuthenticateToken, validatePromotionEndpoint);
+router.post("/matches", authenticateToken, createMatch);
+router.post("/matches/:waitId/join", authenticateToken, joinMatch);
 
-// Lấy lịch sử đặt sân của user (Cần đăng nhập)
+
 router.get("/history", authenticateToken, getMyBookings);
 
-// Lễ tân check-in nhận sân
-router.patch("/slot/:slotId/check-in", authenticateToken, checkInSlot);
 
-// Lễ tân trả sân (Check-out)
-router.patch("/slot/:slotId/check-out", authenticateToken, checkOutSlot);
-
-// Hủy đơn đặt sân
+router.patch("/slot/:slotId/check-in", authenticateToken, isStaffOrAbove, checkInSlot);
+router.patch("/slot/:slotId/check-out", authenticateToken, isStaffOrAbove, checkOutSlot);
 router.patch("/:bookingId/cancel", authenticateToken, cancelBooking);
-
-// Thêm dịch vụ (nước, vợt) vào đơn đặt sân
-router.post("/:bookingId/add-service", authenticateToken, addServiceToBooking);
+router.post("/:bookingId/add-service", authenticateToken, isStaffOrAbove, addServiceToBooking);
 
 module.exports = router;

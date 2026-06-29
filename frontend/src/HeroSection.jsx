@@ -14,7 +14,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative min-h-[500px] flex flex-col justify-center px-6 py-16 mt-6 mx-4 rounded-3xl bg-[#0b1c30] overflow-hidden shadow-2xl">
+    <section className="relative min-h-[500px] flex flex-col justify-center px-6 py-16 mt-6 mx-4 rounded-3xl bg-[#00272C] overflow-hidden shadow-2xl">
       {/* Abstract Background Decorators */}
       <div className="absolute top-[-20%] left-[-10%] w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-80 h-80 bg-emerald-500/20 rounded-full blur-[80px] pointer-events-none"></div>
@@ -68,7 +68,7 @@ const HeroSection = () => {
           </div>
           <button
             onClick={handleSearch}
-            className="w-full bg-primary text-[#0b1c30] py-4 rounded-xl font-bold text-base active:scale-[0.98] hover:bg-[#a8d800] shadow-lg transition-all flex items-center justify-center gap-2"
+            className="w-full bg-primary text-[#00272C] py-4 rounded-xl font-bold text-base active:scale-[0.98] hover:bg-[#C6D632] shadow-lg transition-all flex items-center justify-center gap-2"
           >
             <Search className="w-5 h-5" />
             TÌM SÂN NGAY

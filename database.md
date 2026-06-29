@@ -1034,7 +1034,7 @@ IF v_NewStatus IS NULL THEN RAISE EXCEPTION 'Decision phải là Approve, Reject
 
     UPDATE CourtOwnerProfile SET ProfileStatus = v_NewStatus, ReviewedAt = CURRENT_TIMESTAMP, ReviewedBy = p_AdminId, ReviewNote = p_Note, UpdatedAt = CURRENT_TIMESTAMP WHERE OwnerId = p_OwnerId;
     INSERT INTO OwnerStatusHistory (OwnerId, FromStatus, ToStatus, ChangedBy, Reason) VALUES (p_OwnerId, v_OldStatus, v_NewStatus, p_AdminId, p_Note);
-    IF p_Decision = 'Approve' THEN UPDATE AppUser SET IsActive = TRUE WHERE UserId = (SELECT UserId FROM CourtOwnerProfile WHERE OwnerId = p_OwnerId); END IF;
+    IF p_Decision = 'Approve' THEN UPDATE AppUser SET IsActive = TRUE, RoleId = 2 WHERE UserId = (SELECT UserId FROM CourtOwnerProfile WHERE OwnerId = p_OwnerId); END IF;
 
 END;
 

@@ -15,6 +15,7 @@ const serviceRoutes = require("./src/routes/services");
 const dashboardRoutes = require("./src/routes/dashboard");
 const reviewRoutes = require("./src/routes/reviews");
 const promotionRoutes = require("./src/routes/promotions");
+const notificationRoutes = require("./src/routes/notification");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -40,6 +41,7 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/promotions", promotionRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Route mặc định
 app.get("/", (req, res) => {

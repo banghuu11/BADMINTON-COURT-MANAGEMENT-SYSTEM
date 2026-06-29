@@ -78,7 +78,7 @@ const OwnerDashboard = () => {
         </p>
         <Link
           to="/owner-register"
-          className="bg-primary text-[#0b1c30] px-6 py-3 rounded-xl font-bold hover:bg-[#a8d800] transition-colors shadow-lg"
+          className="bg-primary text-[#00272C] px-6 py-3 rounded-xl font-bold hover:bg-[#C6D632] transition-colors shadow-lg"
         >
           Đăng ký / Kiểm tra hồ sơ
         </Link>
@@ -154,7 +154,7 @@ const OwnerDashboard = () => {
 
       {/* Tổng quan (Summary Cards) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-[#0b1c30] to-[#1a2c42] p-6 rounded-3xl shadow-lg relative overflow-hidden">
+        <div className="bg-gradient-to-br from-[#00272C] to-[#1a2c42] p-6 rounded-3xl shadow-lg relative overflow-hidden">
           <div className="absolute -right-4 -bottom-4 opacity-10">
             <DollarSign className="w-32 h-32 text-white" />
           </div>

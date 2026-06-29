@@ -9,11 +9,29 @@ const createCourt = async (req, res) => {
   }
 
   try {
+    const userId = req.user.userId;
+    const roleId = Number(req.user.roleId);
+
+    if (roleId === 3) {
+      const checkOwner = await pool.query(
+        "SELECT VenueId FROM Venue WHERE VenueId = $1 AND ManagerId = $2",
+        [venueId, userId],
+      );
+      if (checkOwner.rows.length === 0) {
+        const ownerCheck = await pool.query(
+          "SELECT v.VenueId FROM Venue v JOIN CourtOwnerProfile cop ON v.OwnerId = cop.OwnerId WHERE v.VenueId = $1 AND cop.UserId = $2",
+          [venueId, userId],
+        );
+        if (ownerCheck.rows.length === 0) {
+          return res.status(403).json({ error: "Bạn không có quyền thêm sân vào cơ sở này!" });
+        }
+      }
+    }
+
     const insertQuery = `
       INSERT INTO Court (VenueId, CourtName, CourtCode, SurfaceType, IsIndoor)
       VALUES ($1, $2, $3, $4, $5) RETURNING *
     `;
-    // Nếu isIndoor ko truyền thì mặc định là true
     const indoorVal = isIndoor === undefined ? true : isIndoor;
     const newCourt = await pool.query(insertQuery, [
       venueId,
@@ -50,4 +68,26 @@ const getCourtsByVenue = async (req, res) => {
   }
 };
 
-module.exports = { createCourt, getCourtsByVenue };
+// [GET] /api/courts/:id - Lấy chi tiết sân theo ID
+const getCourtById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      "SELECT c.*, v.VenueName, v.Address FROM Court c JOIN Venue v ON c.VenueId = v.VenueId WHERE c.CourtId = $1",
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Không tìm thấy sân đấu này!" });
+    }
+    res.json({ message: "Lấy chi tiết sân thành công!", court: result.rows[0] });
+  } catch (error) {
+    console.error("Lỗi getCourtById:", error);
+    res
+      .status(500)
+      .json({ error: "Lỗi server khi lấy chi tiết sân.", details: error.message });
+  }
+};
+
+module.exports = { createCourt, getCourtsByVenue, getCourtById };
+
+

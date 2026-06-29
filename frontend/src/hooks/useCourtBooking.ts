@@ -64,14 +64,106 @@ const matchModeConfig = {
   },
 };
 
+const durationOptions = [
+  { label: "1 tiếng", minutes: 60 },
+  { label: "1 tiếng 30", minutes: 90 },
+  { label: "2 tiếng", minutes: 120 },
+];
+
+const timeToMinutes = (time) => {
+  const [hours, minutes] = time.substring(0, 5).split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
+const minutesToTime = (totalMinutes) => {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+};
+
+const getCurrentDayType = (playDate) => {
+  const dateObj = new Date(playDate);
+  const dayOfWeek = dateObj.getDay();
+  return dayOfWeek === 0 || dayOfWeek === 6 ? "Weekend" : "Weekday";
+};
+
+const buildBookableSlots = (pricingList, playDate, durationMinutes) => {
+  const currentDayType = getCurrentDayType(playDate);
+
+  return (pricingList || [])
+    .filter((slot) => slot.daytype === "All" || slot.daytype === currentDayType)
+    .sort((a, b) => a.starttime.localeCompare(b.starttime))
+    .flatMap((slot) => {
+      const windowStart = timeToMinutes(slot.starttime);
+      const windowEnd = timeToMinutes(slot.endtime);
+      const latestStart = windowEnd - durationMinutes;
+      const starts = [];
+
+      for (let start = windowStart; start <= latestStart; start += 30) {
+        const end = start + durationMinutes;
+        starts.push({
+          ...slot,
+          pricingid: `${slot.pricingid}-${start}-${durationMinutes}`,
+          sourcePricingId: slot.pricingid,
+          starttime: minutesToTime(start),
+          endtime: minutesToTime(end),
+          durationMinutes,
+          durationLabel:
+            durationOptions.find((option) => option.minutes === durationMinutes)
+              ?.label || `${durationMinutes} phút`,
+        });
+      }
+
+      return starts;
+    });
+};
+
 export const useCourtBooking = (courtId) => {
   const today = new Date().toISOString().split("T")[0];
   const [playDate, setPlayDate] = useState(today);
   const [pricingSlots, setPricingSlots] = useState([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const [selectedDuration, setSelectedDuration] = useState(60);
   const [matchType, setMatchType] = useState("singles");
   const [selectedPositions, setSelectedPositions] = useState([]);
   const [showMatchPopup, setShowMatchPopup] = useState(false);
+
+  // States cho khuyến mãi
+  const [promoCode, setPromoCode] = useState("");
+  const [promoError, setPromoError] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+
+  // Query lấy chi tiết sân đấu để có VenueId
+  const {
+    data: courtData,
+    isLoading: courtLoading,
+    error: courtError,
+  } = useQuery({
+    queryKey: ["courtDetails", courtId],
+    queryFn: async () => {
+      if (!courtId) return null;
+      const data = await apiFetch(`/courts/${courtId}`);
+      return data.court || null;
+    },
+    enabled: !!courtId,
+  });
+
+  const venueId = courtData?.venueid;
+
+  // Query lấy danh sách khuyến mãi của cơ sở (venue)
+  const {
+    data: promotionsData,
+    isLoading: promotionsLoading,
+  } = useQuery({
+    queryKey: ["venuePromotions", venueId],
+    queryFn: async () => {
+      if (!venueId) return [];
+      const data = await apiFetch(`/promotions/venue/${venueId}`);
+      return data.promotions || [];
+    },
+    enabled: !!venueId,
+  });
 
   const {
     data: pricingData,
@@ -119,12 +211,114 @@ export const useCourtBooking = (courtId) => {
   });
 
   useEffect(() => {
-    if (pricingData) setPricingSlots(pricingData);
-  }, [pricingData]);
+    setPricingSlots(buildBookableSlots(pricingData, playDate, selectedDuration));
+  }, [pricingData, playDate, selectedDuration]);
 
+  // Reset các lựa chọn và khuyến mãi khi đổi ca chơi/ngày/chế độ
   useEffect(() => {
     setSelectedPositions([]);
-  }, [matchType, playDate, selectedTimeSlot?.pricingid]);
+    setAppliedDiscount(null);
+    setPromoError("");
+  }, [matchType, playDate, selectedDuration, selectedTimeSlot?.pricingid]);
+
+  useEffect(() => {
+    setSelectedTimeSlot(null);
+  }, [playDate, selectedDuration]);
+
+  useEffect(() => {
+    setAppliedDiscount(null);
+    setPromoError("");
+  }, [selectedPositions]);
+
+  // Áp dụng mã giảm giá nhập tay
+  const handleApplyPromoCode = async (codeStr) => {
+    if (!codeStr || !codeStr.trim()) {
+      setPromoError("Vui lòng nhập mã giảm giá!");
+      return;
+    }
+    if (!selectedTimeSlot) {
+      setPromoError("Vui lòng chọn ngày & giờ chơi trước khi áp dụng mã!");
+      return;
+    }
+
+    setPromoError("");
+    setIsApplyingPromo(true);
+
+    try {
+      const [sh, sm] = selectedTimeSlot.starttime.split(":").map(Number);
+      const [eh, em] = selectedTimeSlot.endtime.split(":").map(Number);
+      const durationHours = (eh * 60 + em - (sh * 60 + sm)) / 60;
+      const count = isFullCourt ? 1 : selectedPositions.length || 1;
+      const courtTotal = Number(selectedTimeSlot.price) * durationHours * count;
+
+      const data = await apiFetch("/booking/validate-promotion", {
+        method: "POST",
+        body: JSON.stringify({
+          code: codeStr.trim(),
+          courtId: Number(courtId),
+          playDate,
+          courtTotal,
+        }),
+      });
+
+      if (data.discountDetail) {
+        setAppliedDiscount({
+          ...data.discountDetail,
+          code: codeStr.trim(),
+        });
+        setPromoError("");
+      }
+    } catch (err) {
+      console.error(err);
+      setPromoError(err.message || "Không thể áp dụng mã giảm giá.");
+      setAppliedDiscount(null);
+    } finally {
+      setIsApplyingPromo(false);
+    }
+  };
+
+  // Chọn khuyến mãi trực tiếp từ danh sách
+  const handleSelectPromotion = async (promo) => {
+    if (!selectedTimeSlot) {
+      setPromoError("Vui lòng chọn ngày & giờ chơi trước khi chọn khuyến mãi!");
+      return;
+    }
+    setPromoError("");
+    setIsApplyingPromo(true);
+
+    try {
+      const [sh, sm] = selectedTimeSlot.starttime.split(":").map(Number);
+      const [eh, em] = selectedTimeSlot.endtime.split(":").map(Number);
+      const durationHours = (eh * 60 + em - (sh * 60 + sm)) / 60;
+      const count = isFullCourt ? 1 : selectedPositions.length || 1;
+      const courtTotal = Number(selectedTimeSlot.price) * durationHours * count;
+
+      const data = await apiFetch("/booking/validate-promotion", {
+        method: "POST",
+        body: JSON.stringify({
+          promotionId: promo.promotionid,
+          courtId: Number(courtId),
+          playDate,
+          courtTotal,
+        }),
+      });
+
+      if (data.discountDetail) {
+        setAppliedDiscount({
+          ...data.discountDetail,
+          code: null,
+          promotionName: promo.promotionname,
+        });
+        setPromoError("");
+      }
+    } catch (err) {
+      console.error(err);
+      setPromoError(err.message || "Không thể áp dụng chương trình khuyến mãi.");
+      setAppliedDiscount(null);
+    } finally {
+      setIsApplyingPromo(false);
+    }
+  };
 
   const bookedSlots = scheduleData || [];
   const isFullCourt = matchType === "fullCourt";
@@ -153,6 +347,7 @@ export const useCourtBooking = (courtId) => {
             avatarUrl: bookedSlot.avatarurl,
             fullName: bookedSlot.fullname || bookedSlot.guestname,
             phoneNumber: bookedSlot.phonenumber || bookedSlot.guestphone,
+            skillLevel: bookedSlot.skilllevel || bookedSlot.SkillLevel || null,
           });
         }
         return acc;
@@ -160,11 +355,13 @@ export const useCourtBooking = (courtId) => {
     : [];
 
   const getBookingsForSlot = (slot) =>
-    bookedSlots.filter(
-      (booked) =>
-        booked.starttime.substring(0, 5) === slot.starttime.substring(0, 5) &&
-        booked.endtime.substring(0, 5) === slot.endtime.substring(0, 5),
-    );
+    bookedSlots.filter((booked) => {
+      const start1 = slot.starttime.substring(0, 5);
+      const end1 = slot.endtime.substring(0, 5);
+      const start2 = booked.starttime.substring(0, 5);
+      const end2 = booked.endtime.substring(0, 5);
+      return start1 < end2 && end1 > start2;
+    });
 
   const isSlotBooked = (slot) => {
     const bookingsInSlot = getBookingsForSlot(slot);
@@ -231,10 +428,14 @@ export const useCourtBooking = (courtId) => {
             ? "Tìm đồng đội đánh đôi"
             : "Đánh đơn",
       slots: buildBookingSlots(),
+      promotionId: appliedDiscount?.promotionId || null,
+      codeId: appliedDiscount?.codeId || null,
+      discountCode: appliedDiscount?.code || null,
     });
 
     setSelectedTimeSlot(null);
     setSelectedPositions([]);
+    setAppliedDiscount(null);
     setShowMatchPopup(true);
   };
 
@@ -253,6 +454,8 @@ export const useCourtBooking = (courtId) => {
     playDate,
     pricingSlots,
     selectedTimeSlot,
+    selectedDuration,
+    durationOptions,
     matchType,
     selectedPositions,
     selectedSlot,
@@ -260,20 +463,30 @@ export const useCourtBooking = (courtId) => {
     occupiedSlots: computedOccupiedSlots,
     showMatchPopup,
     isFullCourt,
+    courtData,
+    promotions: promotionsData,
+    promoCode,
+    promoError,
+    appliedDiscount,
+    isApplyingPromo,
     canBook:
       !!selectedTimeSlot &&
       (isFullCourt || selectedPositions.length === activeMode.requiredCount),
     isLoading:
       pricingLoading ||
       scheduleLoading ||
+      courtLoading ||
+      promotionsLoading ||
       bookingMutation.isPending ||
       matchMutation.isPending,
     error:
       pricingError?.message ||
       scheduleError?.message ||
+      courtError?.message ||
       bookingMutation.error?.message ||
       matchMutation.error?.message,
     setPlayDate,
+    setSelectedDuration,
     setSelectedTimeSlot,
     setMatchType,
     setSelectedSlot: (slot) => setSelectedPositions(slot ? [slot] : []),
@@ -283,5 +496,9 @@ export const useCourtBooking = (courtId) => {
     handleBookCourt,
     handleCreateMatch,
     setShowMatchPopup,
+    setPromoCode,
+    handleApplyPromoCode,
+    handleSelectPromotion,
+    setPromoError,
   };
 };

@@ -7,8 +7,8 @@ const Register = () => {
     useRegister();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0b1c30] py-12 px-4">
-      <div className="max-w-md w-full bg-[#1a2c42]/60 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4">
+      <div className="max-w-md w-full bg-background/80 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
         <h2 className="text-3xl font-bold text-center text-white mb-6">
           Đăng ký Tài Khoản
         </h2>
@@ -134,10 +134,12 @@ const Register = () => {
             )}
           </div>
 
+
+
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-primary text-[#0b1c30] font-bold py-3 px-4 rounded-xl hover:bg-[#a8d800] transition-all duration-200 mt-2 shadow-lg shadow-primary/20 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`w-full bg-primary text-on-primary font-bold py-3 px-4 rounded-xl hover:bg-primary-hover transition-all duration-200 mt-2 shadow-lg shadow-primary/20 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">

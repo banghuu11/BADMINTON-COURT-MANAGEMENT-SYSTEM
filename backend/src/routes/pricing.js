@@ -5,10 +5,11 @@ const {
   deletePricing,
 } = require("../controllers/pricingController");
 const { authenticateToken } = require("../middlewares/authMiddleware");
+const { isOwnerOrAdmin } = require("../middlewares/roleMiddleware");
 const router = express.Router();
 
-router.post("/", authenticateToken, createPricing);
-router.get("/court/:courtId", getPricingByCourt); // Có thể public để khách hàng xem giá
-router.delete("/:id", authenticateToken, deletePricing);
+router.post("/", authenticateToken, isOwnerOrAdmin, createPricing);
+router.get("/court/:courtId", getPricingByCourt);
+router.delete("/:id", authenticateToken, isOwnerOrAdmin, deletePricing);
 
 module.exports = router;

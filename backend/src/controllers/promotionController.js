@@ -143,9 +143,30 @@ const deletePromotion = async (req, res) => {
   }
 };
 
+// [GET] /api/promotions - Lấy danh sách tất cả khuyến mãi đang hoạt động (Public API)
+const getAllActivePromotions = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT p.*, v.VenueName, v.Address as VenueAddress 
+       FROM Promotion p 
+       JOIN Venue v ON p.VenueId = v.VenueId 
+       WHERE p.IsActive = TRUE AND p.EndDate >= CURRENT_DATE 
+       ORDER BY p.EndDate ASC`
+    );
+    res.json({
+      message: "Lấy danh sách khuyến mãi thành công!",
+      promotions: result.rows,
+    });
+  } catch (error) {
+    console.error("Lỗi getAllActivePromotions:", error);
+    res.status(500).json({ error: "Lỗi server.", details: error.message });
+  }
+};
+
 module.exports = {
   getPromotionsByVenue,
   createPromotion,
   updatePromotion,
   deletePromotion,
+  getAllActivePromotions,
 };

@@ -233,7 +233,7 @@ const OwnerOnboarding = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`flex items-center gap-2 bg-[#0b1c30] text-white px-8 py-3.5 rounded-xl font-bold text-sm whitespace-nowrap hover:bg-[#1a2c42] transition-colors shadow-lg ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`flex items-center gap-2 bg-[#00272C] text-white px-8 py-3.5 rounded-xl font-bold text-sm whitespace-nowrap hover:bg-[#1a2c42] transition-colors shadow-lg ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {loading ? (
               "Đang xử lý..."

@@ -12,7 +12,7 @@ const InvoiceModal = ({
   if (!isOpen || !invoiceData) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#0b1c30]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-[#00272C]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl animate-fade-in overflow-hidden flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center p-6 border-b border-slate-100">
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -154,7 +154,7 @@ const InvoiceModal = ({
               <button
                 type="submit"
                 disabled={processingPayment}
-                className={`w-full py-3.5 rounded-xl font-bold text-base transition-colors shadow-lg flex items-center justify-center gap-2 mt-2 ${processingPayment ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none" : "bg-primary text-[#0b1c30] hover:bg-[#a8d800] shadow-[0_0_15px_rgba(191,240,0,0.3)]"}`}
+                className={`w-full py-3.5 rounded-xl font-bold text-base transition-colors shadow-lg flex items-center justify-center gap-2 mt-2 ${processingPayment ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none" : "bg-primary text-[#00272C] hover:bg-[#C6D632] shadow-[0_0_15px_rgba(225,255,81,0.3)]"}`}
               >
                 <DollarSign className="w-5 h-5" />{" "}
                 {processingPayment ? "Đang xử lý..." : "Xác nhận thu tiền"}

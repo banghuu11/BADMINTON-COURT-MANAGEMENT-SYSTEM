@@ -11,7 +11,7 @@ const TimeSlotSelector = ({
   return (
     <div>
       <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
-        <span className="bg-primary text-[#0b1c30] w-6 h-6 rounded-full flex items-center justify-center text-xs">
+        <span className="bg-primary text-[#00272C] w-6 h-6 rounded-full flex items-center justify-center text-xs">
           1
         </span>{" "}
         Chọn ngày & giờ chơi
@@ -44,14 +44,14 @@ const TimeSlotSelector = ({
                     key={pSlot.pricingid}
                     disabled={isBooked}
                     onClick={() => onTimeSlotChange(pSlot)}
-                    className={`p-2 rounded-xl border text-sm flex flex-col items-center transition-all ${isBooked ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-60" : isSelected ? "bg-primary border-primary text-[#0b1c30] shadow-md" : "bg-white border-slate-200 text-slate-700 hover:border-primary hover:text-primary"}`}
+                    className={`p-2 rounded-xl border text-sm flex flex-col items-center transition-all ${isBooked ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-60" : isSelected ? "bg-primary border-primary text-[#00272C] shadow-md" : "bg-white border-slate-200 text-slate-700 hover:border-primary hover:text-primary"}`}
                   >
                     <span className="font-bold">
                       {pSlot.starttime.slice(0, 5)} -{" "}
                       {pSlot.endtime.slice(0, 5)}
                     </span>
                     <span
-                      className={`text-xs ${isBooked ? "font-bold text-red-500" : isSelected ? "text-[#0b1c30]/80" : "text-slate-500"}`}
+                      className={`text-xs ${isBooked ? "font-bold text-red-500" : isSelected ? "text-[#00272C]/80" : "text-slate-500"}`}
                     >
                       {isBooked
                         ? bookedStatus
