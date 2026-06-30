@@ -47,7 +47,7 @@ export const useCourtManagement = () => {
   });
 
   const createMutation = useMutation({
-    mutationFn: (values) =>
+    mutationFn: (values: any) =>
       apiFetch("/courts", {
         method: "POST",
         body: JSON.stringify({ ...values, venueId: selectedVenueId }),

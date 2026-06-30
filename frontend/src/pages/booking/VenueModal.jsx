@@ -1,4 +1,4 @@
- import { Building2, X, Check } from "lucide-react";
+import { Building2, X, Check } from "lucide-react";
 
 const VenueModal = ({
   isOpen,

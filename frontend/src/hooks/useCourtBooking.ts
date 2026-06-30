@@ -419,7 +419,7 @@ export const useCourtBooking = (courtId) => {
       return;
     }
 
-    await bookingMutation.mutateAsync({
+    const data = await bookingMutation.mutateAsync({
       bookingType: "Online",
       note:
         matchType === "fullCourt"
@@ -436,7 +436,7 @@ export const useCourtBooking = (courtId) => {
     setSelectedTimeSlot(null);
     setSelectedPositions([]);
     setAppliedDiscount(null);
-    setShowMatchPopup(true);
+    return data;
   };
 
   const handleCreateMatch = async () => {

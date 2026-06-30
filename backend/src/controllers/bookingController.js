@@ -352,6 +352,20 @@ const createBooking = async (req, res) => {
     }
 
     await client.query("COMMIT"); // Lưu tất cả vào Database
+    
+    // Gửi thông báo qua Socket.IO (nếu có customerId)
+    if (customerId) {
+      const { createNotification } = require("../utils/notificationHelper");
+      await createNotification(
+        req.app, 
+        customerId, 
+        "Đặt sân thành công", 
+        `Đơn đặt sân ${bookingCode} của bạn đã được ghi nhận!`, 
+        "Booking", 
+        newBooking.bookingid
+      );
+    }
+
     res
       .status(201)
       .json({ message: "Đặt sân thành công!", booking: newBooking });

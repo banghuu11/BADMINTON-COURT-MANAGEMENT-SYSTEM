@@ -70,6 +70,11 @@ api.interceptors.response.use(
 );
 
 // Wrapper giữ nguyên chữ ký hàm cũ để tương thích 100% với các file giao diện đang gọi apiFetch
+/**
+ * @param {string} endpoint
+ * @param {Object} [options={}]
+ * @returns {Promise<any>}
+ */
 export const apiFetch = async (endpoint, options = {}) => {
   const method = options.method || "GET";
   let data;

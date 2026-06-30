@@ -6,6 +6,7 @@ import useAuthStore from "../../store/useAuthStore";
 import { apiFetch } from "../../services/api";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
+import { io } from "socket.io-client";
 
 const NotificationPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -59,6 +60,29 @@ const NotificationPopup = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Socket.IO Real-time Listener
+  useEffect(() => {
+    if (!user) return;
+
+    // Kết nối tới server
+    const socket = io("http://localhost:8080");
+
+    // Tham gia room dành riêng cho user này
+    const userId = user.userId || user.userid;
+    socket.emit("join-room", userId);
+
+    // Lắng nghe sự kiện thông báo mới
+    socket.on("new_notification", (newNotification) => {
+      console.log("Nhận được thông báo realtime:", newNotification);
+      // Buộc TanStack Query fetch lại danh sách thông báo
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user, queryClient]);
 
   const markAsRead = async (id, e) => {
     e.preventDefault();

@@ -51,7 +51,19 @@ const TrendingCourts = () => {
       </div>
       <div className="flex overflow-x-auto gap-5 px-5 no-scrollbar pb-4 snap-x">
         {loading ? (
-          <p className="text-white/50 text-sm">Đang tải danh sách sân...</p>
+          [...Array(3)].map((_, i) => (
+            <div key={i} className="flex-shrink-0 w-[280px] snap-center bg-[#122843] rounded-2xl p-3 border border-white/5">
+              <div className="skeleton h-44 rounded-xl mb-4"></div>
+              <div className="space-y-2 px-1">
+                <div className="skeleton h-5 w-3/4 rounded"></div>
+                <div className="skeleton h-3 w-1/2 rounded"></div>
+              </div>
+              <div className="flex justify-between items-center px-1 mt-4 pt-4 border-t border-white/5">
+                <div className="skeleton h-5 w-1/3 rounded"></div>
+                <div className="skeleton h-8 w-20 rounded-lg"></div>
+              </div>
+            </div>
+          ))
         ) : venues.length > 0 ? (
           venues.map((venue, index) => {
             const style = stylePresets[index % stylePresets.length];

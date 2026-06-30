@@ -16,6 +16,7 @@ const Home = () => {
   if (roleId === 2) {
     return <OwnerDashboard />;
   }
+  // Khách hàng (Customer - RoleId 5 hoặc undefined nếu là Guest) sẽ load UI bình thường
 
   return (
     <div className="pb-12 animate-fade-in">

@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
 const path = require("path");
 const pool = require("./src/config/db");
 const authRoutes = require("./src/routes/auth");
@@ -16,8 +18,35 @@ const dashboardRoutes = require("./src/routes/dashboard");
 const reviewRoutes = require("./src/routes/reviews");
 const promotionRoutes = require("./src/routes/promotions");
 const notificationRoutes = require("./src/routes/notification");
+const paymentRoutes = require("./src/routes/payment");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173", // Chỉnh sửa lại domain frontend nếu cần
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+  }
+});
+
+// Lưu `io` vào app để có thể sử dụng trong các Controller
+app.set("io", io);
+
+// Lắng nghe kết nối Socket
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+
+  // Tham gia vào Room mang tên UserId
+  socket.on("join-room", (userId) => {
+    socket.join(userId.toString());
+    console.log(`Socket ${socket.id} joined room: ${userId}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.id);
+  });
+});
+
 const PORT = process.env.PORT || 8080;
 
 // Middleware
@@ -42,6 +71,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/promotions", promotionRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // Route mặc định
 app.get("/", (req, res) => {
@@ -61,6 +91,10 @@ app.get("/api/test-db", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+// Khởi tạo Cron Jobs
+const initCronJobs = require("./src/jobs/checkSubscriptions");
+initCronJobs(app);
+
+server.listen(PORT, () => {
   console.log(`Server đang chạy tại http://localhost:${PORT}`);
 });

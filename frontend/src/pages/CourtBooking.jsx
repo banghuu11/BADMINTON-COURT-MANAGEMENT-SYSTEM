@@ -66,7 +66,10 @@ const CourtBooking = () => {
       return;
     }
     try {
-      await handleBookCourt();
+      const result = await handleBookCourt();
+      if (result && result.booking) {
+        navigate(`/payment/${result.booking.bookingid}`);
+      }
     } catch (err) {
       alert(err.message || "Có lỗi xảy ra khi đặt sân.");
     }

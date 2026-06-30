@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import { useLogin } from "../hooks/useLogin";
 
 const Login = () => {
-  const { formRegister, handleSubmit, errors, apiError, loading } = useLogin();
+  const { formRegister, handleSubmit, errors, loading } = useLogin();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -12,11 +12,7 @@ const Login = () => {
           Đăng nhập
         </h2>
 
-        {apiError && (
-          <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl mb-4 text-sm">
-            {apiError}
-          </div>
-        )}
+
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -59,6 +55,14 @@ const Login = () => {
                 {errors.password.message}
               </p>
             )}
+            <div className="flex justify-end mt-2">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-primary hover:text-[#C6D632] hover:underline"
+              >
+                Quên mật khẩu?
+              </Link>
+            </div>
           </div>
 
           <button

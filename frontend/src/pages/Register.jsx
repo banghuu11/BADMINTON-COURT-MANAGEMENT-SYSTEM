@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import { useRegister } from "../hooks/useRegister";
 
 const Register = () => {
-  const { formRegister, handleSubmit, errors, apiError, loading } =
+  const { formRegister, handleSubmit, errors, loading } =
     useRegister();
 
   return (
@@ -13,11 +13,7 @@ const Register = () => {
           Đăng ký Tài Khoản
         </h2>
 
-        {apiError && (
-          <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl mb-4 text-sm">
-            {apiError}
-          </div>
-        )}
+
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

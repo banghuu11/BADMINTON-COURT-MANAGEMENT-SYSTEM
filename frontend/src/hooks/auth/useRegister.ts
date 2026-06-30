@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import useAuthStore from "../../store/useAuthStore";
+import { apiFetch } from "../../services/api";
 import { registerSchema, RegisterFormData } from "../../schemas/auth";
+import toast from "react-hot-toast";
 
 export const useRegister = () => {
   const {
@@ -11,34 +12,37 @@ export const useRegister = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormData>({
-    // 2. Sử dụng zodResolver để tích hợp Zod với React Hook Form
     resolver: zodResolver(registerSchema),
     defaultValues: {
       username: "",
       password: "",
+      confirmPassword: "",
       fullName: "",
       phoneNumber: "",
-      email: "",
-      confirmPassword: "",
-      roleName: "Customer",
     },
   });
 
-  const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const register = useAuthStore((state: any) => state.register);
 
   const onSubmit = async (data: RegisterFormData) => {
-    setApiError("");
     setLoading(true);
 
     try {
-      await register(data);
-      alert("Đăng ký thành công! Hãy đăng nhập nhé.");
+      await apiFetch("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          username: data.username,
+          password: data.password,
+          fullName: data.fullName,
+          phoneNumber: data.phoneNumber,
+        }),
+      });
+
+      toast.success("Đăng ký thành công! Hãy đăng nhập nhé.");
       navigate("/login");
     } catch (err: any) {
-      setApiError(err.message);
+      toast.error(err.message || "Lỗi đăng ký");
     } finally {
       setLoading(false);
     }
@@ -48,7 +52,6 @@ export const useRegister = () => {
     formRegister,
     handleSubmit: handleSubmit(onSubmit),
     errors,
-    apiError,
     loading,
   };
 };

@@ -5,6 +5,8 @@ const {
   getProfile,
   updateProfile,
   refreshToken,
+  forgotPassword,
+  resetPassword,
 } = require("../controllers/authController");
 const { authenticateToken } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/uploadMiddleware");
@@ -34,5 +36,15 @@ router.put("/profile", authenticateToken, upload.single("avatar"), updateProfile
 // 5. REFRESH TOKEN (POST /api/auth/refresh)
 // ==========================================
 router.post("/refresh", refreshToken);
+
+// ==========================================
+// 6. QUÊN MẬT KHẨU (POST /api/auth/forgot-password)
+// ==========================================
+router.post("/forgot-password", forgotPassword);
+
+// ==========================================
+// 7. ĐẶT LẠI MẬT KHẨU (POST /api/auth/reset-password)
+// ==========================================
+router.post("/reset-password", resetPassword);
 
 module.exports = router;

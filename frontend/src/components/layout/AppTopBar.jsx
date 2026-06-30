@@ -29,15 +29,6 @@ const AppTopBar = () => {
     navLinks.push({ name: "Tìm sân", path: "/courts" });
     navLinks.push({ name: "Giao lưu", path: "/matches" });
     navLinks.push({ name: "Khuyến mãi", path: "/promotions" });
-
-    if (user && (user.roleid === 2 || user.roleId === 2)) {
-      navLinks.push({ name: "Lễ tân", path: "/reception" });
-      navLinks.push({ name: "Cơ sở", path: "/manage-venues" });
-      navLinks.push({ name: "Quản lý Sân", path: "/manage-courts" });
-      navLinks.push({ name: "Bảng giá", path: "/manage-pricing" });
-      navLinks.push({ name: "Kho & Dịch vụ", path: "/services" });
-      navLinks.push({ name: "Quản lý KM", path: "/manage-promotions" });
-    }
   }
 
   return (

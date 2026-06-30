@@ -267,10 +267,100 @@ const refreshToken = async (req, res) => {
   }
 };
 
+// [POST] /api/auth/forgot-password - Yêu cầu cấp lại mật khẩu (Mock gửi OTP)
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: "Vui lòng nhập Email!" });
+  }
+
+  try {
+    const userCheck = await pool.query(
+      `SELECT UserId, FullName FROM AppUser WHERE Email = $1`,
+      [email]
+    );
+
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Không tìm thấy tài khoản với Email này!" });
+    }
+
+    // Tạo mã OTP 6 số
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 15 * 60 * 1000); // Hết hạn sau 15 phút
+
+    await pool.query(
+      `UPDATE AppUser SET ResetToken = $1, ResetTokenExpiry = $2 WHERE Email = $3`,
+      [otp, expiry, email]
+    );
+
+    // MÔ PHỎNG GỬI EMAIL BẰNG CÁCH IN RA CONSOLE
+    console.log("=====================================");
+    console.log(`[MOCK EMAIL] Gửi đến: ${email}`);
+    console.log(`Xin chào ${userCheck.rows[0].fullname},`);
+    console.log(`Mã OTP để đặt lại mật khẩu của bạn là: ${otp}`);
+    console.log(`Mã này sẽ hết hạn sau 15 phút.`);
+    console.log("=====================================");
+
+    res.json({ message: "Mã OTP đã được gửi đến Email của bạn!" });
+  } catch (error) {
+    console.error("Lỗi forgotPassword:", error);
+    res.status(500).json({ error: "Lỗi server.", details: error.message });
+  }
+};
+
+// [POST] /api/auth/reset-password - Đặt lại mật khẩu với OTP
+const resetPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json({ error: "Vui lòng nhập đầy đủ Email, OTP và Mật khẩu mới!" });
+  }
+
+  try {
+    const userCheck = await pool.query(
+      `SELECT UserId, ResetToken, ResetTokenExpiry FROM AppUser WHERE Email = $1`,
+      [email]
+    );
+
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Tài khoản không tồn tại!" });
+    }
+
+    const user = userCheck.rows[0];
+
+    // Kiểm tra OTP và thời hạn
+    if (!user.resettoken || user.resettoken !== otp) {
+      return res.status(400).json({ error: "Mã OTP không chính xác!" });
+    }
+
+    if (new Date() > new Date(user.resettokenexpiry)) {
+      return res.status(400).json({ error: "Mã OTP đã hết hạn!" });
+    }
+
+    // Hash mật khẩu mới
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    // Cập nhật pass và xóa OTP
+    await pool.query(
+      `UPDATE AppUser SET PasswordHash = $1, ResetToken = NULL, ResetTokenExpiry = NULL WHERE Email = $2`,
+      [passwordHash, email]
+    );
+
+    res.json({ message: "Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại." });
+  } catch (error) {
+    console.error("Lỗi resetPassword:", error);
+    res.status(500).json({ error: "Lỗi server.", details: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
   getProfile,
   updateProfile,
   refreshToken,
+  forgotPassword,
+  resetPassword,
 };
+

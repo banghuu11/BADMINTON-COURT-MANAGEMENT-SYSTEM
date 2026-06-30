@@ -52,7 +52,7 @@ const ReceptionistDashboard = () => {
   // Lấy danh sách cơ sở
   useEffect(() => {
     const roleId = user?.roleid || user?.roleId;
-    if (!isAuthenticated || ![1, 2, 3, 4].includes(roleId)) {
+    if (!isAuthenticated || ![1, 2].includes(roleId)) {
       alert("Truy cập bị từ chối!");
       navigate("/");
       return;
