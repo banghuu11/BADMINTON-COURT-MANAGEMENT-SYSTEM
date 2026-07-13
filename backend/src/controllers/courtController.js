@@ -1,5 +1,20 @@
 const pool = require("../config/db");
 
+const createDefaultPricingForCourt = async (courtId) => {
+  await pool.query(
+    `INSERT INTO TimeSlotPricing (CourtId, SlotName, StartTime, EndTime, Price, DayType, IsActive)
+     SELECT $1, slot_name, start_time::time, end_time::time, price, 'All', TRUE
+     FROM (VALUES
+       ('Giờ thấp điểm', '05:00:00', '17:00:00', 80000.00),
+       ('Giờ cao điểm', '17:00:00', '22:00:00', 120000.00)
+     ) AS defaults(slot_name, start_time, end_time, price)
+     WHERE NOT EXISTS (
+       SELECT 1 FROM TimeSlotPricing WHERE CourtId = $1
+     )`,
+    [courtId],
+  );
+};
+
 // [POST] /api/courts - Thêm sân vào cơ sở
 const createCourt = async (req, res) => {
   const { venueId, courtName, courtCode, surfaceType, isIndoor } = req.body;
@@ -40,6 +55,7 @@ const createCourt = async (req, res) => {
       surfaceType || "PVC 4.5mm",
       indoorVal,
     ]);
+    await createDefaultPricingForCourt(newCourt.rows[0].courtid);
 
     res
       .status(201)
@@ -88,6 +104,66 @@ const getCourtById = async (req, res) => {
   }
 };
 
-module.exports = { createCourt, getCourtsByVenue, getCourtById };
+// [PUT] /api/courts/:courtId - Cập nhật sân
+const updateCourt = async (req, res) => {
+  const { courtId } = req.params;
+  const { courtName, courtCode, surfaceType, isIndoor } = req.body;
+  const userId = req.user.userId;
 
+  try {
+    const ownerCheck = await pool.query(
+      `SELECT v.VenueId FROM Venue v 
+       JOIN Court c ON c.VenueId = v.VenueId 
+       JOIN CourtOwnerProfile cop ON v.OwnerId = cop.OwnerId 
+       WHERE c.CourtId = $1 AND cop.UserId = $2`,
+      [courtId, userId]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      return res.status(403).json({ error: "Bạn không có quyền cập nhật sân này!" });
+    }
+
+    const updateQuery = `
+      UPDATE Court 
+      SET CourtName = $1, CourtCode = $2, SurfaceType = $3, IsIndoor = $4
+      WHERE CourtId = $5 RETURNING *
+    `;
+    const indoorVal = isIndoor === undefined ? true : isIndoor;
+    const updated = await pool.query(updateQuery, [courtName, courtCode, surfaceType || "PVC 4.5mm", indoorVal, courtId]);
+
+    res.json({ message: "Cập nhật sân thành công!", court: updated.rows[0] });
+  } catch (error) {
+    console.error("Lỗi updateCourt:", error);
+    res.status(500).json({ error: "Lỗi server khi cập nhật sân.", details: error.message });
+  }
+};
+
+// [DELETE] /api/courts/:courtId - Xóa mềm sân
+const deleteCourt = async (req, res) => {
+  const { courtId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const ownerCheck = await pool.query(
+      `SELECT v.VenueId FROM Venue v 
+       JOIN Court c ON c.VenueId = v.VenueId 
+       JOIN CourtOwnerProfile cop ON v.OwnerId = cop.OwnerId 
+       WHERE c.CourtId = $1 AND cop.UserId = $2`,
+      [courtId, userId]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      return res.status(403).json({ error: "Bạn không có quyền xóa sân này!" });
+    }
+
+    await pool.query("UPDATE Court SET Status = 'Inactive' WHERE CourtId = $1", [courtId]);
+
+    res.json({ message: "Đã xóa (Ngừng hoạt động) sân thành công!" });
+  } catch (error) {
+    console.error("Lỗi deleteCourt:", error);
+    res.status(500).json({ error: "Lỗi server khi xóa sân.", details: error.message });
+  }
+};
+
+module.exports = { createCourt, getCourtsByVenue, getCourtById, updateCourt, deleteCourt };
 

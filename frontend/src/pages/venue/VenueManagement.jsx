@@ -19,6 +19,7 @@ const VenueManagement = () => {
     saving,
     openModal,
     handleSubmit,
+    handleDelete,
   } = useVenueManagement();
 
   return (
@@ -33,7 +34,7 @@ const VenueManagement = () => {
           </p>
         </div>
         <button
-          onClick={openModal}
+          onClick={() => openModal()}
           className="px-5 py-2.5 bg-primary text-[#00272C] hover:bg-[#C6D632] rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 transition-colors"
         >
           <Plus className="w-4 h-4" /> Thêm chi nhánh
@@ -54,6 +55,8 @@ const VenueManagement = () => {
                 setSelectedVenueForImage(v);
                 setIsImageModalOpen(true);
               }}
+              onEdit={openModal}
+              onDelete={handleDelete}
             />
           ))
         ) : (
@@ -66,7 +69,7 @@ const VenueManagement = () => {
               Bạn chưa thêm chi nhánh sân cầu lông nào. Hãy thêm ngay!
             </p>
             <button
-              onClick={openModal}
+              onClick={() => openModal()}
               className="bg-primary text-[#00272C] px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[#C6D632] transition-colors inline-flex items-center gap-2 shadow-sm"
             >
               <Plus className="w-4 h-4" /> Thêm cơ sở đầu tiên

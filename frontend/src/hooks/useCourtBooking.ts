@@ -413,12 +413,13 @@ export const useCourtBooking = (courtId) => {
     });
   };
 
-  const handleBookCourt = async () => {
+  const handleBookCourt = async (options = {}) => {
     if (!selectedTimeSlot) return;
     if (!isFullCourt && selectedPositions.length < activeMode.requiredCount) {
       return;
     }
 
+    const bookingSlots = buildBookingSlots();
     const data = await bookingMutation.mutateAsync({
       bookingType: "Online",
       note:
@@ -427,11 +428,22 @@ export const useCourtBooking = (courtId) => {
           : matchType === "doubles"
             ? "Tìm đồng đội đánh đôi"
             : "Đánh đơn",
-      slots: buildBookingSlots(),
+      slots: bookingSlots,
       promotionId: appliedDiscount?.promotionId || null,
       codeId: appliedDiscount?.codeId || null,
       discountCode: appliedDiscount?.code || null,
     });
+
+    if (options.createMatchAfterBooking) {
+      await matchMutation.mutateAsync({
+        courtId: Number(courtId),
+        playDate,
+        startTime: selectedTimeSlot.starttime,
+        endTime: selectedTimeSlot.endtime,
+        matchType,
+        positionIndex: bookingSlots[0]?.positionIndex,
+      });
+    }
 
     setSelectedTimeSlot(null);
     setSelectedPositions([]);

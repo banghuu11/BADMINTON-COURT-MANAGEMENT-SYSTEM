@@ -15,7 +15,8 @@ export const usePricingManagement = () => {
   const [selectedVenueId, setSelectedVenueId] = useState("");
   const [selectedCourtId, setSelectedCourtId] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState(defaultPricingForm);
+  const [formData, setFormData] = useState<any>(defaultPricingForm);
+  const [editingId, setEditingId] = useState<any>(null);
 
   const { data: venues = [], isLoading: venuesLoading } = useQuery({
     queryKey: ["myVenues"],
@@ -52,27 +53,26 @@ export const usePricingManagement = () => {
     enabled: !!selectedCourtId,
   });
 
-  const createMutation = useMutation({
-    mutationFn: (values) =>
-      apiFetch("/pricing", {
-        method: "POST",
+  const saveMutation = useMutation({
+    mutationFn: ({ id, values }: any) =>
+      apiFetch(id ? `/pricing/${id}` : "/pricing", {
+        method: id ? "PUT" : "POST",
         body: JSON.stringify({
           ...values,
           courtId: selectedCourtId,
           price: Number(values.price),
-          effectiveFrom: null,
-          effectiveTo: null,
         }),
       }),
     onSuccess: () => {
       setFormData(defaultPricingForm);
+      setEditingId(null);
       setIsModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ["pricing", selectedCourtId] });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => apiFetch(`/pricing/${id}`, { method: "DELETE" }),
+    mutationFn: (id: any) => apiFetch(`/pricing/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pricing", selectedCourtId] });
     },
@@ -91,9 +91,25 @@ export const usePricingManagement = () => {
     setIsModalOpen,
     formData,
     setFormData,
-    saving: createMutation.isPending,
-    openModal: () => setIsModalOpen(true),
-    handleSubmit: createMutation.mutate,
+    editingId,
+    saving: saveMutation.isPending,
+    openModal: (pricing: any = null) => {
+      if (pricing) {
+        setEditingId(pricing.pricingid);
+        setFormData({
+          slotName: pricing.slotname,
+          dayType: pricing.daytype,
+          price: pricing.price,
+          startTime: pricing.starttime?.slice(0, 5),
+          endTime: pricing.endtime?.slice(0, 5),
+        });
+      } else {
+        setEditingId(null);
+        setFormData(defaultPricingForm);
+      }
+      setIsModalOpen(true);
+    },
+    handleSubmit: () => saveMutation.mutate({ id: editingId, values: formData }),
     handleDelete: deleteMutation.mutate,
   };
 };

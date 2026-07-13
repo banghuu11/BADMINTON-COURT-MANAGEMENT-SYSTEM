@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dumbbell, Users } from "lucide-react";
+import { CalendarCheck, Dumbbell, Users } from "lucide-react";
 import { apiFetch } from "../../services/api";
 
 const StatsSection = () => {
@@ -18,24 +18,43 @@ const StatsSection = () => {
   }, []);
 
   return (
-    <section className="mt-12 px-5 grid grid-cols-2 gap-4">
-      <div className="bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col justify-between aspect-square hover:bg-white/10 transition-colors">
-        <Dumbbell className="text-primary w-8 h-8" />
-        <div>
-          <p className="text-4xl font-bold text-white">{stats.totalMatches}</p>
-          <p className="text-white/50 text-xs uppercase tracking-wider font-bold">
-            Trận Đã Đấu
+    <section className="mx-auto max-w-7xl px-5 lg:px-8">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
+        <div className="rounded-lg bg-slate-950 p-7 text-white dark:bg-white dark:text-slate-950">
+          <p className="text-sm font-bold text-primary dark:text-on-primary">
+            CourtLink cho người chơi
+          </p>
+          <h2 className="mt-3 text-3xl font-extrabold tracking-normal">
+            Ít thao tác hơn, nhiều thời gian trên sân hơn.
+          </h2>
+          <p className="mt-4 text-sm leading-6 text-slate-300 dark:text-slate-600">
+            Từ tìm sân, xem khung giờ đến theo dõi lịch đặt, mọi thứ được gom
+            lại để người chơi quyết định nhanh và chắc.
           </p>
         </div>
-      </div>
-      <div className="bg-gradient-to-br from-primary to-primary-hover p-6 rounded-2xl flex flex-col justify-between aspect-square shadow-[0_5px_20px_rgba(225,255,81,0.3)]">
-        <Users className="text-on-primary w-8 h-8" />
-        <div>
-          <p className="text-4xl font-bold text-on-primary">
+        <div className="rounded-lg border border-slate-200 bg-white p-7 shadow-sm dark:border-white/10 dark:bg-white/5">
+          <Dumbbell className="h-8 w-8 text-primary" />
+          <p className="mt-8 text-4xl font-extrabold text-slate-950 dark:text-white">{stats.totalMatches}</p>
+          <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-white/50">
+            trận giao lưu đã tạo
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-7 shadow-sm dark:border-white/10 dark:bg-white/5">
+          <Users className="h-8 w-8 text-primary" />
+          <p className="mt-8 text-4xl font-extrabold text-slate-950 dark:text-white">
             {stats.totalUsers}
           </p>
-          <p className="text-on-primary/70 text-xs uppercase tracking-wider font-bold">
-            Thành Viên
+          <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-white/50">
+            thành viên trên hệ thống
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-7 shadow-sm dark:border-white/10 dark:bg-white/5 lg:col-span-2 lg:col-start-2">
+          <CalendarCheck className="h-8 w-8 text-primary" />
+          <p className="mt-4 text-lg font-bold text-slate-950 dark:text-white">
+            Sẵn sàng cho đặt lịch theo ngày, giờ và thời lượng chơi.
+          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+            Phù hợp cả người chơi lẻ, nhóm cố định và chủ sân cần vận hành lịch đặt rõ ràng.
           </p>
         </div>
       </div>

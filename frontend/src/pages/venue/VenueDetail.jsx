@@ -10,15 +10,13 @@ import {
   Dumbbell,
   Coffee,
   MessageSquare,
+  ArrowLeft,
 } from "lucide-react";
 import { apiFetch } from "../../services/api";
+import fallbackImage from "../../assets/hero.png";
 
 const VenueDetail = () => {
   const user = useAuthStore((state) => state.user);
-  if (user && (user.roleid === 1 || user.roleId === 1)) {
-    return <Navigate to="/" replace />;
-  }
-
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState("courts"); // courts, services, reviews
 
@@ -29,6 +27,7 @@ const VenueDetail = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const roleId = Number(user?.roleid || user?.roleId || user?.RoleId);
 
   useEffect(() => {
     const fetchVenueDetails = async () => {
@@ -59,104 +58,111 @@ const VenueDetail = () => {
     fetchVenueDetails();
   }, [id]);
 
+  if (roleId === 1) {
+    return <Navigate to="/" replace />;
+  }
+
   if (loading)
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 dark:bg-background dark:text-slate-300">
         Đang tải dữ liệu...
       </div>
     );
   if (error || !venue)
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-red-500">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-red-500 dark:bg-background">
         {error || "Không tìm thấy cơ sở"}
       </div>
     );
 
+  const coverImage = images[0]?.imageurl || venue.mainimage || fallbackImage;
+
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
-      {/* Hero Cover */}
-      <div className="relative h-64 md:h-80 bg-slate-900 overflow-hidden">
-        {images.length > 0 ? (
-          <img
-            src={images[0].imageurl}
-            alt="Cover"
-            className="absolute inset-0 w-full h-full object-cover opacity-70"
-          />
-        ) : (
-          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/40 via-[#00272C] to-[#00272C]"></div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-slate-900/20 to-transparent"></div>
+    <div className="min-h-screen bg-slate-50 pb-24 dark:bg-background">
+      <div className="relative h-[360px] overflow-hidden bg-slate-950 md:h-[430px]">
+        <img
+          src={coverImage}
+          alt={venue.venuename}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-slate-950/45"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-slate-950/20 to-transparent dark:from-background"></div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-5 -mt-32 relative z-10">
-        {/* Venue Info Card */}
-        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-slate-100 mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+      <div className="relative z-10 mx-auto -mt-44 max-w-6xl px-5 lg:px-8">
+        <Link
+          to="/courts"
+          className="mb-5 inline-flex items-center gap-2 rounded-md bg-white/95 px-3 py-2 text-sm font-bold text-slate-950 shadow-sm transition-colors hover:bg-primary dark:bg-white dark:text-slate-950"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Quay lại danh sách
+        </Link>
+
+        <div className="mb-8 rounded-lg border border-slate-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-white/95 md:p-8">
+          <div className="mb-6 flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <ShieldCheck className="w-5 h-5 text-primary" />
-                <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-1 rounded-md">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded bg-primary px-3 py-1 text-xs font-extrabold uppercase text-on-primary">
+                  <ShieldCheck className="h-4 w-4" />
                   Đối tác xác thực
                 </span>
               </div>
-              <h1 className="text-3xl font-extrabold text-slate-900">
+              <h1 className="max-w-3xl text-3xl font-extrabold tracking-normal text-slate-950 md:text-5xl">
                 {venue.venuename}
               </h1>
+              <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-600">
+                {venue.description || "Cơ sở đang cập nhật mô tả, thông tin sân và dịch vụ."}
+              </p>
             </div>
-            <div className="flex items-center gap-2 bg-yellow-50 px-4 py-2 rounded-2xl border border-yellow-100">
-              <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+            <div className="flex shrink-0 items-center gap-2 rounded-md border border-yellow-100 bg-yellow-50 px-4 py-3">
+              <Star className="h-6 w-6 fill-yellow-500 text-yellow-500" />
               <div>
-                <p className="text-lg font-bold text-slate-900 leading-none">
-                  {venue.rating}
+                <p className="text-lg font-extrabold leading-none text-slate-950">
+                  {venue.rating || "5.0"}
                 </p>
-                <p className="text-[10px] text-slate-500 font-medium">
-                  ({venue.reviewscount} đánh giá)
+                <p className="text-xs font-medium text-slate-500">
+                  {venue.reviewscount || 0} đánh giá
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600 mb-6">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-slate-400" />{" "}
+          <div className="grid grid-cols-1 gap-3 border-t border-slate-100 pt-5 text-sm text-slate-600 md:grid-cols-3">
+            <div className="flex items-start gap-2 rounded-md bg-slate-50 p-3">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <span>{venue.address}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-slate-400" />{" "}
+            <div className="flex items-center gap-2 rounded-md bg-slate-50 p-3">
+              <Clock className="h-4 w-4 shrink-0 text-primary" />
               <span>
-                Mở cửa: {venue.opentime && venue.opentime.slice(0, 5)} -{" "}
-                {venue.closetime && venue.closetime.slice(0, 5)}
+                {venue.opentime?.slice(0, 5) || "06:00"} - {venue.closetime?.slice(0, 5) || "23:00"}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-slate-400" />{" "}
+            <div className="flex items-center gap-2 rounded-md bg-slate-50 p-3">
+              <Phone className="h-4 w-4 shrink-0 text-primary" />
               <span>{venue.phonenumber || "Đang cập nhật"}</span>
             </div>
           </div>
-          <p className="text-slate-600 leading-relaxed border-t border-slate-100 pt-6">
-            {venue.description || "Chưa có mô tả cho cơ sở này."}
-          </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-4 border-b border-slate-200 mb-6 overflow-x-auto no-scrollbar">
+        <div className="mb-6 flex gap-2 overflow-x-auto rounded-lg border border-slate-200 bg-white p-1 shadow-sm dark:border-white/10 dark:bg-white/5">
           <button
             onClick={() => setActiveTab("courts")}
-            className={`pb-4 px-2 font-bold text-sm flex items-center gap-2 whitespace-nowrap transition-colors border-b-2 ${activeTab === "courts" ? "border-primary text-slate-900" : "border-transparent text-slate-400 hover:text-slate-600"}`}
+            className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-3 text-sm font-bold transition-colors ${activeTab === "courts" ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950" : "text-slate-500 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-white/10"}`}
           >
-            <Dumbbell className="w-4 h-4" /> Danh sách Sân
+            <Dumbbell className="h-4 w-4" /> Danh sách sân
           </button>
           <button
             onClick={() => setActiveTab("services")}
-            className={`pb-4 px-2 font-bold text-sm flex items-center gap-2 whitespace-nowrap transition-colors border-b-2 ${activeTab === "services" ? "border-primary text-slate-900" : "border-transparent text-slate-400 hover:text-slate-600"}`}
+            className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-3 text-sm font-bold transition-colors ${activeTab === "services" ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950" : "text-slate-500 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-white/10"}`}
           >
-            <Coffee className="w-4 h-4" /> Dịch vụ & Nước
+            <Coffee className="h-4 w-4" /> Dịch vụ
           </button>
           <button
             onClick={() => setActiveTab("reviews")}
-            className={`pb-4 px-2 font-bold text-sm flex items-center gap-2 whitespace-nowrap transition-colors border-b-2 ${activeTab === "reviews" ? "border-primary text-slate-900" : "border-transparent text-slate-400 hover:text-slate-600"}`}
+            className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-3 text-sm font-bold transition-colors ${activeTab === "reviews" ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950" : "text-slate-500 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-white/10"}`}
           >
-            <MessageSquare className="w-4 h-4" /> Đánh giá
+            <MessageSquare className="h-4 w-4" /> Đánh giá
           </button>
         </div>
 
@@ -168,23 +174,23 @@ const VenueDetail = () => {
                 courts.map((court) => (
                   <div
                     key={court.courtid}
-                    className="bg-white border border-slate-200 p-5 rounded-2xl flex justify-between items-center hover:border-primary/50 transition-colors group"
+                    className="group flex items-center justify-between rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-slate-300 dark:border-white/10 dark:bg-white/5"
                   >
                     <div>
-                      <h3 className="font-bold text-slate-900 text-lg">
+                      <h3 className="text-lg font-extrabold text-slate-950 dark:text-white">
                         {court.courtname}
                       </h3>
-                      <p className="text-slate-500 text-sm">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
                         {court.surfacetype}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-slate-400 font-medium mb-1">
+                      <p className="mb-1 text-xs font-medium text-slate-400">
                         Theo khung giờ
                       </p>
                       <Link
                         to={`/booking/${court.courtid}`}
-                        className="inline-block bg-slate-100 hover:bg-primary text-slate-700 hover:text-[#00272C] px-4 py-2 rounded-lg text-xs font-bold transition-colors"
+                        className="inline-block rounded-md bg-slate-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-primary hover:text-on-primary dark:bg-white dark:text-slate-950"
                       >
                         Chọn giờ
                       </Link>
@@ -205,12 +211,12 @@ const VenueDetail = () => {
                 services.map((service) => (
                   <div
                     key={service.serviceid}
-                    className="bg-white border border-slate-100 p-4 rounded-2xl flex justify-between items-center shadow-sm"
+                    className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5"
                   >
-                    <span className="font-semibold text-slate-700">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">
                       {service.servicename}
                     </span>
-                    <span className="font-bold text-slate-900 bg-slate-100 px-3 py-1 rounded-lg text-sm">
+                    <span className="rounded bg-slate-100 px-3 py-1 text-sm font-bold text-slate-950 dark:bg-white dark:text-slate-950">
                       {Number(service.unitprice).toLocaleString()}đ
                     </span>
                   </div>
@@ -229,11 +235,11 @@ const VenueDetail = () => {
                 reviews.map((review) => (
                   <div
                     key={review.reviewid}
-                    className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm"
+                    className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold overflow-hidden">
+                        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-slate-200 font-bold text-slate-500">
                           {review.revieweravatar ? (
                             <img src={review.revieweravatar} alt="avatar" />
                           ) : (
@@ -241,7 +247,7 @@ const VenueDetail = () => {
                           )}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900 text-sm">
+                          <p className="text-sm font-bold text-slate-950 dark:text-white">
                             {review.reviewername}
                           </p>
                           <p className="text-xs text-slate-500">
@@ -258,11 +264,11 @@ const VenueDetail = () => {
                         <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                       </div>
                     </div>
-                    <p className="text-slate-600 text-sm mt-3">
+                    <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
                       {review.comment}
                     </p>
                     {review.ownerreply && (
-                      <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                      <div className="mt-4 rounded-md border border-slate-100 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/10">
                         <p className="text-xs font-bold text-primary mb-1">
                           Chủ sân phản hồi:
                         </p>

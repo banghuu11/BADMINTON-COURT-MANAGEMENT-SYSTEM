@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import {
   DollarSign,
   MapPin,
   CreditCard,
@@ -11,10 +20,12 @@ import {
 } from "lucide-react";
 import { apiFetch } from "../../services/api";
 import useAuthStore from "../../store/useAuthStore";
+import OwnerReviews from "./OwnerReviews";
 
 const OwnerDashboard = () => {
   const { user, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("stats"); // "stats" | "reviews"
 
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(
@@ -110,47 +121,76 @@ const OwnerDashboard = () => {
   return (
     <div className="max-w-7xl mx-auto px-5 py-8 animate-fade-in pb-24">
       {/* Header & Filter */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Thống kê Doanh thu
-          </h1>
-          <p className="text-slate-500 mt-1 text-sm">
-            Theo dõi hiệu quả kinh doanh của các cơ sở sân
-          </p>
-        </div>
-        <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-2 px-3 border-r border-slate-100">
-            <Calendar className="w-4 h-4 text-slate-400" />
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-transparent font-bold text-slate-900 focus:outline-none"
-            >
-              {[...Array(12).keys()].map((i) => (
-                <option key={i + 1} value={i + 1}>
-                  Tháng {i + 1}
-                </option>
-              ))}
-            </select>
-          </div>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="bg-transparent font-bold text-slate-900 focus:outline-none px-3"
-          >
-            {[
-              currentDate.getFullYear() - 1,
-              currentDate.getFullYear(),
-              currentDate.getFullYear() + 1,
-            ].map((y) => (
-              <option key={y} value={y}>
-                Năm {y}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          Khu vực Chủ Sân
+        </h1>
+        <p className="text-slate-500 mt-1 text-sm">
+          Quản lý hoạt động kinh doanh và phản hồi khách hàng
+        </p>
       </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-4 border-b border-slate-200 mb-8">
+        <button
+          onClick={() => setActiveTab("stats")}
+          className={`pb-4 px-2 font-bold text-sm transition-all border-b-2 ${activeTab === "stats" ? "border-primary text-slate-900" : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"}`}
+        >
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" /> Thống kê Doanh thu
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab("reviews")}
+          className={`pb-4 px-2 font-bold text-sm transition-all border-b-2 ${activeTab === "reviews" ? "border-primary text-slate-900" : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"}`}
+        >
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" /> Đánh giá & Phản hồi
+          </div>
+        </button>
+      </div>
+
+      {activeTab === "reviews" ? (
+        <OwnerReviews />
+      ) : (
+        <>
+          {/* Filter */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
+            <h2 className="text-xl font-bold text-slate-900">
+              Tổng quan hiệu quả
+            </h2>
+            <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-2 px-3 border-r border-slate-100">
+                <Calendar className="w-4 h-4 text-slate-400" />
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="bg-transparent font-bold text-slate-900 focus:outline-none"
+                >
+                  {[...Array(12).keys()].map((i) => (
+                    <option key={i + 1} value={i + 1}>
+                      Tháng {i + 1}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="bg-transparent font-bold text-slate-900 focus:outline-none px-3"
+              >
+                {[
+                  currentDate.getFullYear() - 1,
+                  currentDate.getFullYear(),
+                  currentDate.getFullYear() + 1,
+                ].map((y) => (
+                  <option key={y} value={y}>
+                    Năm {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
       {/* Tổng quan (Summary Cards) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -255,6 +295,8 @@ const OwnerDashboard = () => {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 };

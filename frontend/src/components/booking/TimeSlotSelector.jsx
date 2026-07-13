@@ -13,8 +13,8 @@ const TimeSlotSelector = ({
 }) => {
   return (
     <div>
-      <h3 className="font-bold text-white mb-3 flex items-center gap-2">
-        <span className="bg-primary text-[#00272C] w-6 h-6 rounded-full flex items-center justify-center text-xs font-black">
+      <h3 className="flex items-center gap-2 font-bold text-slate-950 dark:text-white mb-3">
+        <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-black">
           1
         </span>{" "}
         Chọn ngày & giờ chơi
@@ -47,11 +47,11 @@ const TimeSlotSelector = ({
                     key={pSlot.pricingid}
                     disabled={isBooked}
                     onClick={() => onTimeSlotChange(pSlot)}
-                    className={`w-24 min-w-24 min-h-[74px] rounded-xl border px-2 py-2 text-sm flex flex-col items-center justify-center transition-all ${
+                    className={`flex flex-col items-center justify-center w-24 min-w-24 min-h-[74px] rounded-xl border px-2 py-2 text-sm transition-all ${
                       isBooked
                         ? "bg-white/5 border-white/5 text-slate-500 cursor-not-allowed opacity-40"
                         : isSelected
-                          ? "bg-primary border-primary text-[#00272C] shadow-[0_0_15px_rgba(225,255,81,0.45)] font-bold scale-[1.02]"
+                          ? "bg-primary border-primary text-white shadow-[0_0_15px_rgba(16,185,129,0.45)] font-bold scale-[1.02]"
                           : "bg-white/5 border-white/10 text-slate-300 hover:border-primary hover:text-primary hover:bg-white/10"
                     }`}
                   >
@@ -62,11 +62,11 @@ const TimeSlotSelector = ({
                       đến {pSlot.endtime.slice(0, 5)}
                     </span>
                     <span
-                      className={`text-xs mt-0.5 ${
+                      className={`mt-1 text-xs font-semibold ${
                         isBooked
-                          ? "font-bold text-red-400"
+                          ? "text-red-400"
                           : isSelected
-                            ? "text-[#00272C]/80"
+                            ? "text-white/90"
                             : "text-slate-400"
                       }`}
                     >
@@ -99,9 +99,9 @@ const TimeSlotSelector = ({
                     key={option.minutes}
                     type="button"
                     onClick={() => onDurationChange?.(option.minutes)}
-                    className={`min-w-24 min-h-10 rounded-xl border px-2 text-xs font-bold transition-all ${
+                    className={`flex items-center justify-center gap-2 min-w-24 min-h-10 rounded-xl border px-2 text-xs font-bold transition-all ${
                       isSelected
-                        ? "bg-primary border-primary text-[#00272C] shadow-[0_0_15px_rgba(225,255,81,0.35)]"
+                        ? "bg-primary border-primary text-white shadow-[0_0_15px_rgba(16,185,129,0.35)]"
                         : "bg-white/5 border-white/10 text-slate-300 hover:border-primary hover:text-primary hover:bg-white/10"
                     }`}
                   >

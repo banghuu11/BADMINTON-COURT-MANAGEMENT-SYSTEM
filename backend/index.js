@@ -19,6 +19,7 @@ const reviewRoutes = require("./src/routes/reviews");
 const promotionRoutes = require("./src/routes/promotions");
 const notificationRoutes = require("./src/routes/notification");
 const paymentRoutes = require("./src/routes/payment");
+const systemRoutes = require("./src/routes/system");
 
 const app = express();
 const server = http.createServer(app);
@@ -72,6 +73,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/promotions", promotionRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/system", systemRoutes);
 
 // Route mặc định
 app.get("/", (req, res) => {

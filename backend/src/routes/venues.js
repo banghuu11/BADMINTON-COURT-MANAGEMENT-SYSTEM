@@ -7,6 +7,8 @@ const {
   uploadVenueImage,
   getVenueImages,
   deleteVenueImage,
+  updateVenue,
+  deleteVenue,
 } = require("../controllers/venueController");
 const { authenticateToken } = require("../middlewares/authMiddleware");
 const { requireRole } = require("../middlewares/roleMiddleware");
@@ -22,6 +24,8 @@ router.get("/:venueId", getVenueById);
 
 router.post("/", authenticateToken, requireRole([1, 2]), createVenue);
 router.get("/", authenticateToken, requireRole([1, 2, 3, 4]), getMyVenues);
+router.put("/:venueId", authenticateToken, requireRole([1, 2]), updateVenue);
+router.delete("/:venueId", authenticateToken, requireRole([1, 2]), deleteVenue);
 
 router.get("/:venueId/images", getVenueImages);
 router.post(

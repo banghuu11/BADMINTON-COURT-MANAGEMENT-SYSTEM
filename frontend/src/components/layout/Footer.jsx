@@ -10,7 +10,7 @@ import {
 
 const Footer = () => {
   return (
-    <footer className="bg-[#00272C] text-slate-300 pt-16 pb-8 border-t border-white/10">
+    <footer className="bg-white dark:bg-[#00272C] text-slate-600 dark:text-slate-300 pt-16 pb-8 border-t border-slate-200 dark:border-white/10 transition-colors">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           {/* Brand & Giới thiệu */}
@@ -21,30 +21,30 @@ const Footer = () => {
                   C
                 </span>
               </div>
-              <span className="text-xl font-extrabold tracking-tight text-white">
+              <span className="text-xl font-extrabold tracking-tight text-slate-950 dark:text-white">
                 Court<span className="text-primary">Link</span>
               </span>
             </Link>
-            <p className="text-sm leading-relaxed text-slate-400">
+            <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
               Nền tảng đặt sân cầu lông hàng đầu, kết nối đam mê, bứt phá mọi
               giới hạn của bạn.
             </p>
             <div className="flex items-center gap-4 pt-2">
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#00272C] transition-colors border border-white/10 hover:border-primary"
+                className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#00272C] transition-colors border border-slate-200 dark:border-white/10 hover:border-primary"
               >
                 <Globe className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#00272C] transition-colors border border-white/10 hover:border-primary"
+                className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#00272C] transition-colors border border-slate-200 dark:border-white/10 hover:border-primary"
               >
                 <MessageCircle className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#00272C] transition-colors border border-white/10 hover:border-primary"
+                className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center hover:bg-primary hover:text-[#00272C] transition-colors border border-slate-200 dark:border-white/10 hover:border-primary"
               >
                 <Share2 className="w-4 h-4" />
               </a>
@@ -53,7 +53,7 @@ const Footer = () => {
 
           {/* Khám phá */}
           <div>
-            <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">
+            <h3 className="text-slate-950 dark:text-white font-bold mb-4 uppercase tracking-wider text-sm">
               Khám phá
             </h3>
             <ul className="space-y-3">
@@ -94,7 +94,7 @@ const Footer = () => {
 
           {/* Hỗ trợ */}
           <div>
-            <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">
+            <h3 className="text-slate-950 dark:text-white font-bold mb-4 uppercase tracking-wider text-sm">
               Hỗ trợ
             </h3>
             <ul className="space-y-3">
@@ -135,7 +135,7 @@ const Footer = () => {
 
           {/* Liên hệ */}
           <div>
-            <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">
+            <h3 className="text-slate-950 dark:text-white font-bold mb-4 uppercase tracking-wider text-sm">
               Liên hệ
             </h3>
             <ul className="space-y-4">
@@ -158,14 +158,14 @@ const Footer = () => {
         </div>
 
         {/* Copyright */}
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-slate-500 text-center md:text-left">
+        <div className="pt-8 border-t border-slate-200 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-slate-500 dark:text-slate-500 text-center md:text-left">
             &copy; {new Date().getFullYear()} CourtLink. Đã đăng ký bản quyền.
           </p>
           <div className="flex gap-4 text-sm text-slate-500">
-            <button className="hover:text-white transition-colors">VN</button>
+            <button className="hover:text-slate-950 dark:hover:text-white transition-colors">VN</button>
             <span>|</span>
-            <button className="hover:text-white transition-colors">EN</button>
+            <button className="hover:text-slate-950 dark:hover:text-white transition-colors">EN</button>
           </div>
         </div>
       </div>

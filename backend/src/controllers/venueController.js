@@ -3,7 +3,7 @@ const pool = require("../config/db");
 // [POST] /api/venues - Tạo cơ sở mới
 const createVenue = async (req, res) => {
   const userId = req.user.userId;
-  const { venueName, address, district, city, openTime, closeTime } = req.body;
+  const { venueName, address, district, city, openTime, closeTime, latitude, longitude } = req.body;
 
   if (!venueName || !address) {
     return res
@@ -25,8 +25,8 @@ const createVenue = async (req, res) => {
     const ownerId = ownerResult.rows[0].ownerid;
 
     const insertQuery = `
-      INSERT INTO Venue (OwnerId, VenueName, Address, District, City, OpenTime, CloseTime)
-      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
+      INSERT INTO Venue (OwnerId, VenueName, Address, District, City, OpenTime, CloseTime, Latitude, Longitude)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
     `;
     const newVenue = await pool.query(insertQuery, [
       ownerId,
@@ -36,6 +36,8 @@ const createVenue = async (req, res) => {
       city,
       openTime || "06:00",
       closeTime || "23:00",
+      latitude || null,
+      longitude || null,
     ]);
 
     res
@@ -193,6 +195,61 @@ const deleteVenueImage = async (req, res) => {
   }
 };
 
+// [PUT] /api/venues/:venueId - Cập nhật cơ sở
+const updateVenue = async (req, res) => {
+  const userId = req.user.userId;
+  const { venueId } = req.params;
+  const { venueName, address, district, city, openTime, closeTime, latitude, longitude } = req.body;
+
+  try {
+    const ownerResult = await pool.query(
+      "SELECT OwnerId FROM CourtOwnerProfile WHERE UserId = $1",
+      [userId]
+    );
+    if (ownerResult.rows.length === 0) return res.status(404).json({ error: "Không tìm thấy hồ sơ chủ sân." });
+    const ownerId = ownerResult.rows[0].ownerid;
+
+    const checkVenue = await pool.query("SELECT * FROM Venue WHERE VenueId = $1 AND OwnerId = $2", [venueId, ownerId]);
+    if (checkVenue.rows.length === 0) return res.status(404).json({ error: "Không tìm thấy cơ sở hoặc bạn không có quyền." });
+
+    const updateQuery = `
+      UPDATE Venue 
+      SET VenueName = $1, Address = $2, District = $3, City = $4, OpenTime = $5, CloseTime = $6, Latitude = $7, Longitude = $8, UpdatedAt = CURRENT_TIMESTAMP
+      WHERE VenueId = $9 RETURNING *
+    `;
+    const updated = await pool.query(updateQuery, [venueName, address, district, city, openTime, closeTime, latitude || null, longitude || null, venueId]);
+
+    res.json({ message: "Cập nhật cơ sở thành công!", venue: updated.rows[0] });
+  } catch (error) {
+    console.error("Lỗi updateVenue:", error);
+    res.status(500).json({ error: "Lỗi server khi cập nhật cơ sở.", details: error.message });
+  }
+};
+
+// [DELETE] /api/venues/:venueId - Xóa mềm cơ sở
+const deleteVenue = async (req, res) => {
+  const userId = req.user.userId;
+  const { venueId } = req.params;
+
+  try {
+    const ownerResult = await pool.query("SELECT OwnerId FROM CourtOwnerProfile WHERE UserId = $1", [userId]);
+    if (ownerResult.rows.length === 0) return res.status(404).json({ error: "Không tìm thấy hồ sơ chủ sân." });
+    const ownerId = ownerResult.rows[0].ownerid;
+
+    const checkVenue = await pool.query("SELECT * FROM Venue WHERE VenueId = $1 AND OwnerId = $2", [venueId, ownerId]);
+    if (checkVenue.rows.length === 0) return res.status(404).json({ error: "Không tìm thấy cơ sở hoặc bạn không có quyền." });
+
+    await pool.query("UPDATE Venue SET Status = 'Inactive' WHERE VenueId = $1", [venueId]);
+    // Also soft delete all courts in this venue
+    await pool.query("UPDATE Court SET Status = 'Inactive' WHERE VenueId = $1", [venueId]);
+
+    res.json({ message: "Đã xóa (Ngừng hoạt động) cơ sở thành công!" });
+  } catch (error) {
+    console.error("Lỗi deleteVenue:", error);
+    res.status(500).json({ error: "Lỗi server khi xóa cơ sở.", details: error.message });
+  }
+};
+
 module.exports = {
   createVenue,
   getMyVenues,
@@ -201,4 +258,6 @@ module.exports = {
   uploadVenueImage,
   getVenueImages,
   deleteVenueImage,
+  updateVenue,
+  deleteVenue,
 };

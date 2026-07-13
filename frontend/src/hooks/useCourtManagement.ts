@@ -7,6 +7,14 @@ export const useCourtManagement = () => {
   const queryClient = useQueryClient();
   const [selectedVenueId, setSelectedVenueId] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<any>(null);
+
+  const defaultCourtForm = {
+    courtName: "",
+    courtCode: "",
+    surfaceType: "PVC 4.5mm",
+    isIndoor: true,
+  };
 
   const {
     register: formRegister,
@@ -14,12 +22,7 @@ export const useCourtManagement = () => {
     formState: { errors },
     reset,
   } = useForm({
-    defaultValues: {
-      courtName: "",
-      courtCode: "",
-      surfaceType: "PVC 4.5mm",
-      isIndoor: true,
-    },
+    defaultValues: defaultCourtForm,
   });
 
   const { data: venues = [], isLoading: venuesLoading } = useQuery({
@@ -46,15 +49,23 @@ export const useCourtManagement = () => {
     enabled: !!selectedVenueId,
   });
 
-  const createMutation = useMutation({
-    mutationFn: (values: any) =>
-      apiFetch("/courts", {
-        method: "POST",
+  const saveMutation = useMutation({
+    mutationFn: ({ id, values }: any) =>
+      apiFetch(id ? `/courts/${id}` : "/courts", {
+        method: id ? "PUT" : "POST",
         body: JSON.stringify({ ...values, venueId: selectedVenueId }),
       }),
     onSuccess: () => {
-      reset();
+      reset(defaultCourtForm);
+      setEditingId(null);
       setIsModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["courts", selectedVenueId] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: any) => apiFetch(`/courts/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["courts", selectedVenueId] });
     },
   });
@@ -69,8 +80,28 @@ export const useCourtManagement = () => {
     setIsModalOpen,
     formRegister,
     errors,
-    saving: createMutation.isPending,
-    openModal: () => setIsModalOpen(true),
-    handleSubmit: handleSubmit((values) => createMutation.mutate(values)),
+    editingId,
+    saving: saveMutation.isPending,
+    openModal: (court: any = null) => {
+      if (court) {
+        setEditingId(court.courtid);
+        reset({
+          courtName: court.courtname,
+          courtCode: court.courtcode,
+          surfaceType: court.surfacetype || "PVC 4.5mm",
+          isIndoor: court.isindoor,
+        });
+      } else {
+        setEditingId(null);
+        reset(defaultCourtForm);
+      }
+      setIsModalOpen(true);
+    },
+    handleSubmit: handleSubmit((values: any) => saveMutation.mutate({ id: editingId, values })),
+    handleDelete: (id: any) => {
+      if (window.confirm("Bạn có chắc chắn muốn xóa sân này? (Xóa mềm)")) {
+        deleteMutation.mutate(id);
+      }
+    },
   };
 };

@@ -136,42 +136,42 @@ const EditProfile = () => {
   if (!user) return null;
 
   return (
-    <div className="max-w-3xl mx-auto px-5 py-8 animate-fade-in pb-24 text-white">
+    <div className="max-w-3xl mx-auto px-5 py-8 animate-fade-in pb-24 text-slate-950 dark:text-white">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <button
           onClick={() => navigate("/profile")}
-          className="p-2.5 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl transition-colors text-slate-300 hover:text-white"
+          className="rounded-md border border-slate-200 bg-white p-2.5 text-slate-500 transition-colors hover:border-slate-950 hover:text-slate-950 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl font-extrabold tracking-normal text-slate-950 dark:text-white">
             Chỉnh sửa hồ sơ
           </h1>
           <p className="text-slate-400 text-sm mt-1">Cập nhật thông tin tài khoản của bạn</p>
         </div>
       </div>
 
-      <div className="bg-background/40 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-6 md:p-8">
+      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5 md:p-8">
         {/* Status Alerts */}
         {error && (
-          <div className="bg-red-500/10 text-red-400 p-4 rounded-xl text-sm font-semibold border border-red-500/20 mb-6">
+          <div className="mb-6 rounded-md border border-red-500/20 bg-red-500/10 p-4 text-sm font-semibold text-red-400">
             {error}
           </div>
         )}
         {success && (
-          <div className="bg-emerald-500/10 text-emerald-400 p-4 rounded-xl text-sm font-semibold border border-emerald-500/20 mb-6">
+          <div className="mb-6 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm font-semibold text-emerald-400">
             {success}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Avatar upload section */}
-          <div className="flex flex-col items-center justify-center pb-6 border-b border-white/5">
+          <div className="flex flex-col items-center justify-center pb-6 border-b border-slate-200 dark:border-white/5">
             <div 
               onClick={triggerFileInput}
-              className="relative w-28 h-28 bg-primary/10 rounded-full border-2 border-dashed border-white/20 hover:border-primary/50 cursor-pointer group flex items-center justify-center overflow-hidden transition-all shadow-lg"
+              className="group relative flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-200 bg-primary/10 transition-all hover:border-primary/50 dark:border-white/20"
             >
               {avatarPreview ? (
                 <img 
@@ -204,17 +204,17 @@ const EditProfile = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Username (Read-only) */}
             <div>
-              <label className="block text-slate-300 font-bold text-xs uppercase tracking-wider mb-2">
+                <label className="block text-slate-500 dark:text-slate-300 font-bold text-xs uppercase tracking-wider mb-2">
                 Tên đăng nhập
               </label>
-              <div className="w-full px-4 py-3 bg-white/5 border border-white/5 text-slate-400 rounded-xl cursor-not-allowed select-none">
+              <div className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-400 rounded-xl cursor-not-allowed select-none">
                 @{user.username}
               </div>
             </div>
 
             {/* Full Name */}
             <div>
-              <label className="block text-slate-300 font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-1">
+              <label className="block text-slate-500 dark:text-slate-300 font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-1">
                 Họ và tên <span className="text-red-400">*</span>
               </label>
               <input
@@ -223,13 +223,13 @@ const EditProfile = () => {
                 onChange={(e) => setFullName(e.target.value)}
                 required
                 placeholder="Nhập họ và tên"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white transition-colors"
+                className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors"
               />
             </div>
 
             {/* Phone Number */}
             <div>
-              <label className="block text-slate-300 font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-1">
+              <label className="block text-slate-500 dark:text-slate-300 font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-1">
                 Số điện thoại <span className="text-red-400">*</span>
               </label>
               <div className="relative">
@@ -239,7 +239,7 @@ const EditProfile = () => {
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   required
                   placeholder="Nhập số điện thoại"
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white transition-colors"
+                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors"
                 />
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               </div>
@@ -247,7 +247,7 @@ const EditProfile = () => {
 
             {/* Email */}
             <div>
-              <label className="block text-slate-300 font-bold text-xs uppercase tracking-wider mb-2">
+              <label className="block text-slate-500 dark:text-slate-300 font-bold text-xs uppercase tracking-wider mb-2">
                 Địa chỉ Email
               </label>
               <div className="relative">
@@ -256,7 +256,7 @@ const EditProfile = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="email@example.com"
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white transition-colors"
+                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors"
                 />
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               </div>
@@ -264,7 +264,7 @@ const EditProfile = () => {
 
             {/* Date of Birth */}
             <div>
-              <label className="block text-slate-300 font-bold text-xs uppercase tracking-wider mb-2">
+              <label className="block text-slate-500 dark:text-slate-300 font-bold text-xs uppercase tracking-wider mb-2">
                 Ngày sinh
               </label>
               <div className="relative">
@@ -272,7 +272,7 @@ const EditProfile = () => {
                   type="date"
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white transition-colors scheme-dark"
+                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors dark:scheme-dark"
                 />
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
@@ -280,13 +280,13 @@ const EditProfile = () => {
 
             {/* Gender */}
             <div>
-              <label className="block text-slate-300 font-bold text-xs uppercase tracking-wider mb-2">
+              <label className="block text-slate-500 dark:text-slate-300 font-bold text-xs uppercase tracking-wider mb-2">
                 Giới tính
               </label>
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="w-full px-4 py-3 bg-[#0d1e21] border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white transition-colors"
+                className="w-full px-4 py-3 bg-white dark:bg-[#0d1e21] border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors"
               >
                 <option value="">Chọn giới tính</option>
                 <option value="Nam">Nam</option>
@@ -297,13 +297,13 @@ const EditProfile = () => {
 
             {/* Skill Level */}
             <div>
-              <label className="block text-slate-300 font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <label className="block text-slate-500 dark:text-slate-300 font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Award className="w-3.5 h-3.5 text-primary" /> Trình độ chơi
               </label>
               <select
                 value={skillLevel}
                 onChange={(e) => setSkillLevel(e.target.value)}
-                className="w-full px-4 py-3 bg-[#0d1e21] border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white transition-colors"
+                className="w-full px-4 py-3 bg-white dark:bg-[#0d1e21] border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors"
               >
                 <option value="Mới chơi">Mới chơi</option>
                 <option value="Trung bình">Trung bình</option>
@@ -314,7 +314,7 @@ const EditProfile = () => {
 
             {/* Address */}
             <div>
-              <label className="block text-slate-300 font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <label className="block text-slate-500 dark:text-slate-300 font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-primary" /> Địa chỉ
               </label>
               <input
@@ -322,13 +322,13 @@ const EditProfile = () => {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Nhập địa chỉ của bạn"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white transition-colors"
+                className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors"
               />
             </div>
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/5">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-200 dark:border-white/5">
             <button
               type="submit"
               disabled={saving}
@@ -350,7 +350,7 @@ const EditProfile = () => {
               type="button"
               onClick={() => navigate("/profile")}
               disabled={saving}
-              className="sm:w-32 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white py-3.5 font-bold rounded-xl transition-colors border border-white/10"
+              className="sm:w-32 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-950 dark:hover:text-white py-3.5 font-bold rounded-xl transition-colors border border-slate-200 dark:border-white/10"
             >
               Hủy
             </button>

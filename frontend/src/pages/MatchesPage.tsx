@@ -11,24 +11,26 @@ import {
   AlertCircle,
   Sparkles,
   Building2,
+  User,
 } from "lucide-react";
 import {
   useMatches,
   useVenues,
   useCourtsByVenue,
 } from "../hooks/booking/useMatches";
+import JoinMatchModal from "../components/booking/JoinMatchModal";
 
 const MatchesPage = () => {
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
-  const { matches, isLoading, joinMatch, createMatch, isJoining, isCreating } =
-    useMatches();
+  const { matches, isLoading } = useMatches();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
     courtId: "",
     playDate: "",
     startTime: "",
     endTime: "",
+    matchType: "doubles",
   });
 
   // State quản lý việc chọn Cơ sở
@@ -37,25 +39,31 @@ const MatchesPage = () => {
   const { data: courts = [], isLoading: isLoadingCourts } =
     useCourtsByVenue(selectedVenueId);
 
+  const [joiningMatch, setJoiningMatch] = useState<any>(null);
+
   if (user && (user.roleid === 1 || user.roleId === 1)) {
     return <Navigate to="/" replace />;
   }
 
-  const handleJoin = (waitId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn tham gia trận đấu này?")) {
-      joinMatch(waitId);
+  const handleJoin = (match: any) => {
+    if (!user) {
+      alert("Vui lòng đăng nhập để tham gia giao lưu!");
+      navigate("/login");
+      return;
     }
+    setJoiningMatch(match);
   };
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    createMatch({
-      courtId: Number(formData.courtId),
+    const params = new URLSearchParams({
+      flow: "createMatch",
       playDate: formData.playDate,
       startTime: formData.startTime,
       endTime: formData.endTime,
+      matchType: formData.matchType,
     });
-    setShowCreateForm(false);
+    navigate(`/booking/${formData.courtId}?${params.toString()}`);
   };
 
   if (isLoading)
@@ -71,7 +79,7 @@ const MatchesPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight flex items-center gap-2">
             Cộng đồng <span className="text-primary">Giao Lưu & Ghép Kèo</span>
           </h1>
           <p className="text-slate-400 mt-1 text-sm">
@@ -95,18 +103,18 @@ const MatchesPage = () => {
       {showCreateForm && (
         <form
           onSubmit={handleCreate}
-          className="bg-background/40 backdrop-blur-xl border border-white/10 p-6 sm:p-8 rounded-3xl mb-10 shadow-2xl relative overflow-hidden animate-fade-in"
+          className="bg-white dark:bg-background/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 p-6 sm:p-8 rounded-3xl mb-10 shadow-2xl relative overflow-hidden animate-fade-in"
         >
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-emerald-400 opacity-80"></div>
-          <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <h2 className="text-lg font-bold text-slate-950 dark:text-white mb-6 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" /> Tạo kèo ghép mới
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Cơ sở</label>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">Cơ sở</label>
               <select
                 required
-                className="w-full bg-background border border-white/10 p-3 rounded-xl text-sm focus:outline-none focus:border-primary text-white transition-colors"
+                className="w-full bg-white dark:bg-background border border-slate-200 dark:border-white/10 p-3 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors"
                 value={selectedVenueId}
                 onChange={(e) => {
                   setSelectedVenueId(e.target.value);
@@ -124,11 +132,11 @@ const MatchesPage = () => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Sân</label>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">Sân</label>
               <select
                 required
                 disabled={!selectedVenueId || isLoadingCourts}
-                className="w-full bg-background border border-white/10 p-3 rounded-xl text-sm focus:outline-none focus:border-primary text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full bg-white dark:bg-background border border-slate-200 dark:border-white/10 p-3 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 value={formData.courtId}
                 onChange={(e) =>
                   setFormData({ ...formData, courtId: e.target.value })
@@ -145,13 +153,13 @@ const MatchesPage = () => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">
                 Ngày chơi
               </label>
               <input
                 type="date"
                 required
-                className="w-full bg-background border border-white/10 p-2.5 rounded-xl text-sm focus:outline-none focus:border-primary text-white transition-colors"
+                className="w-full bg-white dark:bg-background border border-slate-200 dark:border-white/10 p-2.5 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors"
                 value={formData.playDate}
                 onChange={(e) =>
                   setFormData({ ...formData, playDate: e.target.value })
@@ -159,13 +167,13 @@ const MatchesPage = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">
                 Giờ bắt đầu
               </label>
               <input
                 type="time"
                 required
-                className="w-full bg-background border border-white/10 p-2.5 rounded-xl text-sm focus:outline-none focus:border-primary text-white transition-colors"
+                className="w-full bg-white dark:bg-background border border-slate-200 dark:border-white/10 p-2.5 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors"
                 value={formData.startTime}
                 onChange={(e) =>
                   setFormData({ ...formData, startTime: e.target.value })
@@ -173,26 +181,55 @@ const MatchesPage = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">
                 Giờ kết thúc
               </label>
               <input
                 type="time"
                 required
-                className="w-full bg-background border border-white/10 p-2.5 rounded-xl text-sm focus:outline-none focus:border-primary text-white transition-colors"
+                className="w-full bg-white dark:bg-background border border-slate-200 dark:border-white/10 p-2.5 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900 dark:text-white transition-colors"
                 value={formData.endTime}
                 onChange={(e) =>
                   setFormData({ ...formData, endTime: e.target.value })
                 }
               />
             </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">
+                Loại kèo
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, matchType: "singles" })}
+                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                    formData.matchType === "singles"
+                      ? "bg-primary text-on-primary border-primary"
+                      : "bg-white dark:bg-background border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300"
+                  }`}
+                >
+                  <User className="w-3.5 h-3.5" /> Đơn
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, matchType: "doubles" })}
+                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                    formData.matchType === "doubles"
+                      ? "bg-primary text-on-primary border-primary"
+                      : "bg-white dark:bg-background border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300"
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" /> Đôi
+                </button>
+              </div>
+            </div>
           </div>
           <button
             type="submit"
-            disabled={isCreating}
+            disabled={false}
             className="mt-6 bg-primary hover:bg-primary-hover text-on-primary font-bold px-6 py-3 rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
           >
-            {isCreating ? "Đang xử lý..." : "Xác nhận tạo kèo"}
+            Chọn chỗ & đăng kèo
           </button>
         </form>
       )}
@@ -200,9 +237,9 @@ const MatchesPage = () => {
       {/* Danh sách kèo ghép */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {!matches || matches.length === 0 ? (
-          <div className="max-w-md mx-auto col-span-full text-center py-16 px-6 bg-background/20 rounded-3xl border border-white/10 backdrop-blur-md">
+          <div className="max-w-md mx-auto col-span-full text-center py-16 px-6 bg-white dark:bg-background/20 rounded-3xl border border-slate-200 dark:border-white/10 backdrop-blur-md">
             <AlertCircle className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-white mb-1">Chưa có ai tìm giao lưu</h3>
+            <h3 className="text-lg font-bold text-slate-950 dark:text-white mb-1">Chưa có ai tìm giao lưu</h3>
             <p className="text-slate-400 text-sm mb-6">
               Hiện tại chưa có ai đăng tin tìm người chơi ghép kèo. Hãy là người đầu tiên tạo kèo!
             </p>
@@ -217,10 +254,10 @@ const MatchesPage = () => {
           matches?.map((match: any) => (
             <div
               key={match.waitid}
-              className="relative overflow-hidden rounded-3xl border border-white/10 bg-background/40 backdrop-blur-xl shadow-xl hover:border-primary/30 transition-all duration-300 group hover:-translate-y-1 p-6 flex flex-col justify-between min-h-[340px]"
+              className="relative overflow-hidden rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-background/40 backdrop-blur-xl shadow-xl hover:border-primary/30 transition-all duration-300 group hover:-translate-y-1 p-6 flex flex-col justify-between min-h-[340px]"
             >
               <div>
-                <div className="flex items-center space-x-3 mb-5 border-b border-white/5 pb-4">
+                <div className="flex items-center space-x-3 mb-5 border-b border-slate-200 dark:border-white/5 pb-4">
                   <img
                     src={
                       match.avatarurl ||
@@ -230,7 +267,7 @@ const MatchesPage = () => {
                     className="w-12 h-12 rounded-full border border-primary/20 object-cover"
                   />
                   <div>
-                    <h3 className="font-bold text-white group-hover:text-primary transition-colors">
+                    <h3 className="font-bold text-slate-950 dark:text-white group-hover:text-primary transition-colors">
                       {match.fullname}
                     </h3>
                     <span className="inline-block mt-1 bg-primary/10 border border-primary/20 text-[10px] text-primary px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
@@ -239,18 +276,18 @@ const MatchesPage = () => {
                   </div>
                 </div>
 
-                <div className="text-xs space-y-3 mb-6 text-slate-300">
+                <div className="text-xs space-y-3 mb-6 text-slate-600 dark:text-slate-300">
                   <div className="flex items-start gap-2">
                     <Building2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                     <div>
-                      <strong className="text-white block mb-0.5">Cơ sở:</strong>
+                      <strong className="text-slate-950 dark:text-white block mb-0.5">Cơ sở:</strong>
                       <span className="text-slate-400">{match.venuename}</span>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                     <div>
-                      <strong className="text-white block mb-0.5">Địa chỉ:</strong>
+                      <strong className="text-slate-950 dark:text-white block mb-0.5">Địa chỉ:</strong>
                       <span className="text-slate-400 line-clamp-1">{match.address}</span>
                     </div>
                   </div>
@@ -258,14 +295,14 @@ const MatchesPage = () => {
                     <div className="flex items-start gap-2">
                       <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       <div>
-                        <strong className="text-white block mb-0.5">Sân:</strong>
+                        <strong className="text-slate-950 dark:text-white block mb-0.5">Sân:</strong>
                         <span className="text-slate-400">{match.courtname}</span>
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
                       <Award className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       <div>
-                        <strong className="text-white block mb-0.5">Trình độ:</strong>
+                        <strong className="text-slate-950 dark:text-white block mb-0.5">Trình độ:</strong>
                         <span className="text-slate-400">{match.skilllevel || "Chưa cập nhật"}</span>
                       </div>
                     </div>
@@ -274,14 +311,14 @@ const MatchesPage = () => {
                     <div className="flex items-start gap-2">
                       <Calendar className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       <div>
-                        <strong className="text-white block mb-0.5">Ngày chơi:</strong>
+                        <strong className="text-slate-950 dark:text-white block mb-0.5">Ngày chơi:</strong>
                         <span className="text-slate-400">{new Date(match.playdate).toLocaleDateString("vi-VN")}</span>
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
                       <Clock className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       <div>
-                        <strong className="text-white block mb-0.5">Thời gian:</strong>
+                        <strong className="text-slate-950 dark:text-white block mb-0.5">Thời gian:</strong>
                         <span className="text-primary font-bold">
                           {match.starttime?.slice(0, 5)} - {match.endtime?.slice(0, 5)}
                         </span>
@@ -291,18 +328,17 @@ const MatchesPage = () => {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-auto pt-4 border-t border-white/5">
+              <div className="flex gap-3 mt-auto pt-4 border-t border-slate-200 dark:border-white/5">
                 <button
-                  onClick={() => handleJoin(match.waitid)}
-                  disabled={isJoining}
+                  onClick={() => handleJoin(match)}
                   className="flex-1 bg-primary text-on-primary py-3 rounded-xl hover:bg-primary-hover font-bold text-xs transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-primary/5"
                 >
                   <Users className="w-4 h-4" />
-                  {isJoining ? "Đang xử lý..." : "Tham gia ngay"}
+                  Tham gia ngay
                 </button>
                 <button
                   onClick={() => navigate(`/booking/${match.courtid}`)}
-                  className="flex-1 bg-white/5 text-white hover:bg-white/10 border border-white/10 py-3 rounded-xl font-bold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 py-3 rounded-xl font-bold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Calendar className="w-4 h-4" />
                   Đến đặt sân
@@ -312,6 +348,13 @@ const MatchesPage = () => {
           ))
         )}
       </div>
+
+      {joiningMatch && (
+        <JoinMatchModal
+          match={joiningMatch}
+          onClose={() => setJoiningMatch(null)}
+        />
+      )}
     </div>
   );
 };

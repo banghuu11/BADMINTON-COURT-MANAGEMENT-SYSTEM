@@ -81,6 +81,36 @@ const getVenueReviews = async (req, res) => {
   }
 };
 
+// [GET] /api/reviews/owner - Lấy danh sách đánh giá của các cơ sở thuộc Chủ sân
+const getOwnerReviews = async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const query = `
+      SELECT r.ReviewId, r.Rating, r.Title, r.Comment, r.CourtRating, r.ServiceRating, r.StaffRating, r.CreatedAt, r.OwnerReply, r.OwnerRepliedAt,
+             CASE WHEN r.IsAnonymous THEN 'Người dùng ẩn danh' ELSE u.FullName END AS ReviewerName,
+             CASE WHEN r.IsAnonymous THEN NULL ELSE u.AvatarUrl END AS ReviewerAvatar,
+             v.VenueName
+      FROM Review r
+      JOIN AppUser u ON r.UserId = u.UserId
+      JOIN Venue v ON r.VenueId = v.VenueId
+      JOIN CourtOwnerProfile cop ON v.OwnerId = cop.OwnerId
+      WHERE cop.UserId = $1 AND r.Status = 'Approved'
+      ORDER BY r.CreatedAt DESC
+    `;
+    const result = await pool.query(query, [userId]);
+    res.json({
+      message: "Lấy danh sách đánh giá thành công!",
+      reviews: result.rows,
+    });
+  } catch (error) {
+    console.error("Lỗi getOwnerReviews:", error);
+    res
+      .status(500)
+      .json({ error: "Lỗi server khi lấy đánh giá của chủ sân.", details: error.message });
+  }
+};
+
 // [PATCH] /api/reviews/:reviewId/reply - Chủ sân trả lời đánh giá
 const replyToReview = async (req, res) => {
   const { reviewId } = req.params;
@@ -131,4 +161,4 @@ const replyToReview = async (req, res) => {
   }
 };
 
-module.exports = { createReview, getVenueReviews, replyToReview };
+module.exports = { createReview, getVenueReviews, getOwnerReviews, replyToReview };

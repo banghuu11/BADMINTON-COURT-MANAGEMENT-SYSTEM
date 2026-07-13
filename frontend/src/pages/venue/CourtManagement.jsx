@@ -1,4 +1,4 @@
-import { Dumbbell, Plus } from "lucide-react";
+import { Dumbbell, Plus, Edit2, Trash2 } from "lucide-react";
 import CourtModal from "./CourtModal.jsx";
 import { useCourtManagement } from "../../hooks/useCourtManagement";
 
@@ -16,6 +16,7 @@ const CourtManagement = () => {
     saving,
     openModal,
     handleSubmit,
+    handleDelete,
   } = useCourtManagement();
 
   return (
@@ -42,7 +43,7 @@ const CourtManagement = () => {
             ))}
           </select>
           <button
-            onClick={openModal}
+            onClick={() => openModal()}
             disabled={!selectedVenueId}
             className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 ${!selectedVenueId ? "bg-slate-200 text-slate-400" : "bg-primary text-[#00272C] hover:bg-[#C6D632] shadow-lg shadow-primary/20"}`}
           >
@@ -62,6 +63,7 @@ const CourtManagement = () => {
                 <th className="p-4 font-bold">Mã Sân</th>
                 <th className="p-4 font-bold">Mặt Thảm</th>
                 <th className="p-4 font-bold text-center">Trạng thái</th>
+                <th className="p-4 font-bold text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -85,6 +87,23 @@ const CourtManagement = () => {
                     <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase border border-emerald-200">
                       {c.status}
                     </span>
+                  </td>
+                  <td className="p-4 text-right space-x-2">
+                    <button
+                      onClick={() => openModal(c)}
+                      className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200 inline-block"
+                      title="Sửa"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(c.courtid)}
+                      disabled={c.status === 'Inactive'}
+                      className={`p-2 rounded-lg transition-colors border inline-block ${c.status === 'Inactive' ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' : 'bg-red-50 text-red-600 hover:bg-red-100 border-red-200'}`}
+                      title="Xóa"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </td>
                 </tr>
               ))}

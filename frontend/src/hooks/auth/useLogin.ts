@@ -27,9 +27,17 @@ export const useLogin = () => {
     setLoading(true);
 
     try {
-      await login(data.username, data.password);
+      const res = await login(data.username, data.password);
       toast.success("Đăng nhập thành công!");
-      navigate("/");
+
+      const roleId = Number(res.user?.roleid ?? res.user?.roleId ?? res.user?.RoleId);
+      if (roleId === 1) {
+        navigate("/admin-dashboard");
+      } else if (roleId === 2) {
+        navigate("/owner-dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (err: any) {
       toast.error(err.message || "Lỗi đăng nhập");
     } finally {

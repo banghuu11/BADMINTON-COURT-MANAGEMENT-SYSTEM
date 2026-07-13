@@ -4,27 +4,28 @@ import { useNavigate } from "react-router-dom";
 import { useMatches } from "../../hooks/useMatches";
 
 const MatchSection: React.FC = () => {
-  const { matches, loading, fetchMatches, joinMatch } = useMatches();
+  const { matches, loading, fetchMatches } = useMatches();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchMatches();
   }, [fetchMatches]);
 
-  const handleJoinMatch = async (waitId: number) => {
-    try {
-      const res = await joinMatch(waitId);
-      alert(
-        `${res.message}\nThông tin người tạo phòng:\n- Tên: ${res.contact.fullname}\n- SĐT: ${res.contact.phonenumber}`,
-      );
-    } catch (err: any) {
-      if (err.message === "AUTH_REQUIRED") {
-        alert("Vui lòng đăng nhập để tham gia giao lưu!");
-        navigate("/login");
-      } else {
-        alert(err.message);
-      }
+  const handleJoinMatch = (match: any) => {
+    const params = new URLSearchParams({
+      flow: "joinMatch",
+      waitId: String(match.waitid),
+      playDate: String(match.playdate).slice(0, 10),
+      startTime: String(match.starttime).slice(0, 5),
+      endTime: String(match.endtime).slice(0, 5),
+      matchType: match.matchtype || "doubles",
+    });
+
+    if (!match.courtid) {
+      alert("Thiếu thông tin sân để tham gia kèo.");
+      return;
     }
+    navigate(`/booking/${match.courtid}?${params.toString()}`);
   };
 
   if (loading)
@@ -103,7 +104,7 @@ const MatchSection: React.FC = () => {
               </div>
 
               <button
-                onClick={() => handleJoinMatch(match.waitid)}
+                onClick={() => handleJoinMatch(match)}
                 className="w-full py-3 rounded-xl bg-primary text-on-primary font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
               >
                 <Users className="w-5 h-5" /> Tham gia ngay

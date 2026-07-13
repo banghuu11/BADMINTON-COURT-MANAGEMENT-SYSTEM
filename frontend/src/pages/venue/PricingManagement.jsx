@@ -1,4 +1,4 @@
-import { DollarSign, Plus, Clock, MapPin, Trash2 } from "lucide-react";
+import { Clock, Plus, Trash2, Edit2, DollarSign, MapPin } from "lucide-react";
 import PricingModal from "./PricingModal.jsx";
 import { usePricingManagement } from "../../hooks/usePricingManagement";
 
@@ -79,9 +79,9 @@ const PricingManagement = () => {
           </select>
 
           <button
-            onClick={openModal}
+            onClick={() => openModal()}
             disabled={!selectedCourtId}
-            className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors ${!selectedCourtId ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-[#00272C] text-primary hover:bg-[#1a2c42] shadow-sm"}`}
+            className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 ${!selectedCourtId ? "bg-slate-200 text-slate-400" : "bg-[#00272C] text-primary hover:bg-[#1a2c42]"}`}
           >
             <Plus className="w-4 h-4" /> Thêm Giá
           </button>
@@ -124,7 +124,14 @@ const PricingManagement = () => {
                     <td className="p-4 font-extrabold text-slate-900 text-lg">
                       {Number(p.price).toLocaleString()}đ
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right space-x-2">
+                      <button
+                        onClick={() => openModal(p)}
+                        className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200 inline-block"
+                        title="Sửa"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleDelete(p.pricingid)}
                         className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors border border-red-200 inline-block"

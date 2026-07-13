@@ -176,7 +176,12 @@ const NotificationPopup = () => {
             ) : (
               <div className="p-8 text-center text-gray-500 text-sm flex flex-col items-center">
                 <Bell className="w-8 h-8 mb-2 opacity-20" />
-                Không có thông báo nào.
+                <p className="font-semibold text-gray-700 dark:text-gray-200">
+                  Chưa có thông báo nào
+                </p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Lịch đặt sân, ưu đãi và cập nhật mới sẽ hiển thị tại đây.
+                </p>
               </div>
             )}
           </div>

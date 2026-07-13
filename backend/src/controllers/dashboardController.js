@@ -13,10 +13,23 @@ const getAdminDashboard = async (req, res) => {
       "SELECT COUNT(*) AS pending_count FROM CourtOwnerProfile WHERE ProfileStatus = 'Submitted'",
     );
 
+    // 3. Lấy danh sách đăng ký gói SaaS của các Chủ sân
+    const subscriptions = await pool.query(
+      `SELECT 
+        os.SubscriptionId, os.OwnerId, os.PlanId, os.StartDate, os.EndDate, os.Status, os.AutoRenew,
+        sp.PlanName, sp.PricePerCycle,
+        cop.BusinessName, cop.RepFullName, cop.RepPhone, cop.RepEmail
+      FROM OwnerSubscription os
+      JOIN SubscriptionPlan sp ON os.PlanId = sp.PlanId
+      JOIN CourtOwnerProfile cop ON os.OwnerId = cop.OwnerId
+      ORDER BY os.CreatedAt DESC`
+    );
+
     res.json({
       message: "Lấy dữ liệu Dashboard Admin thành công!",
       pendingApprovals: parseInt(pendingOwners.rows[0].pending_count),
       platformRevenue: revenueResult.rows,
+      subscriptions: subscriptions.rows,
     });
   } catch (error) {
     console.error("Lỗi getAdminDashboard:", error);

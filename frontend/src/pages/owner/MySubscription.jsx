@@ -1,27 +1,34 @@
 import { useState, useEffect } from "react";
-import { CreditCard, Crown, CheckCircle2, Clock, ShieldAlert, ArrowRight, Loader2, Zap } from "lucide-react";
+import { CreditCard, Crown, CheckCircle2, Clock, ShieldAlert, ArrowRight, Loader2, Zap, X, FileText } from "lucide-react";
 import { apiFetch } from "../../services/api";
 import useAuthStore from "../../store/useAuthStore";
 
 const MySubscription = () => {
   const [subscription, setSubscription] = useState(null);
   const [plans, setPlans] = useState([]);
+  const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState(null);
   const [billingCycle, setBillingCycle] = useState("Monthly");
+  
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("VNPay");
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [subData, plansData] = await Promise.all([
+        const [subData, plansData, invData] = await Promise.all([
           apiFetch("/plans/my-subscription"),
-          apiFetch("/plans")
+          apiFetch("/plans"),
+          apiFetch("/plans/my-invoices")
         ]);
         setSubscription(subData.subscription);
         setPlans(plansData.plans || []);
+        setInvoices(invData.invoices || []);
       } catch (err) {
         console.error("Lỗi lấy dữ liệu gói:", err);
       } finally {
@@ -31,21 +38,39 @@ const MySubscription = () => {
     fetchData();
   }, []);
 
-  const handleSubscribe = async () => {
+  const handleConfirmPayment = async () => {
     if (!selectedPlanId) return alert("Vui lòng chọn một gói dịch vụ!");
     setProcessing(true);
     try {
-      const result = await apiFetch("/plans/subscribe", {
+      if (paymentMethod === "Momo") {
+        // Call backend to create MoMo QR
+        const res = await apiFetch("/plans/create-momo-qr", {
+          method: "POST",
+          body: JSON.stringify({
+            planId: selectedPlanId,
+            billingCycle: billingCycle
+          })
+        });
+        if (res.payUrl) {
+          window.location.href = res.payUrl;
+          return; // Stop here, redirecting
+        }
+      }
+
+      // If VNPay or fallback (Mock)
+      await apiFetch("/plans/subscribe", {
         method: "POST",
         body: JSON.stringify({
           planId: selectedPlanId,
           billingCycle: billingCycle,
-          paymentMethod: "VNPay", // Mock
+          paymentMethod: paymentMethod,
           autoRenew: false
         })
       });
-      alert(result.message);
-      window.location.reload();
+      setPaymentSuccess(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
     } catch (err) {
       alert(err.message || "Lỗi thanh toán gói dịch vụ.");
     } finally {
@@ -210,12 +235,121 @@ const MySubscription = () => {
             </p>
           </div>
           <button 
-            onClick={handleSubscribe}
-            disabled={processing}
-            className="w-full md:w-auto px-8 py-4 bg-primary text-[#00272C] rounded-xl font-black text-lg hover:bg-[#C6D632] transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shrink-0 relative z-10"
+            onClick={() => setShowCheckoutModal(true)}
+            className="w-full md:w-auto px-8 py-4 bg-primary text-[#00272C] rounded-xl font-black text-lg hover:bg-[#C6D632] transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 shrink-0 relative z-10"
           >
-            {processing ? <><Loader2 className="w-5 h-5 animate-spin" /> Đang xử lý...</> : "Thanh Toán Ngay"}
+            Tiếp Tục Thanh Toán <ArrowRight className="w-5 h-5" />
           </button>
+        </div>
+      )}
+
+      {/* Lịch sử giao dịch */}
+      {invoices.length > 0 && (
+        <div className="mt-16">
+          <h2 className="text-2xl font-extrabold text-slate-900 mb-6 flex items-center gap-2">
+            <FileText className="w-6 h-6 text-primary" /> Lịch sử Thanh Toán Gói
+          </h2>
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-sm">
+                    <th className="py-4 px-6 font-bold">Mã Giao dịch</th>
+                    <th className="py-4 px-6 font-bold">Gói Dịch vụ</th>
+                    <th className="py-4 px-6 font-bold">Chu kỳ</th>
+                    <th className="py-4 px-6 font-bold">Số tiền</th>
+                    <th className="py-4 px-6 font-bold">Phương thức</th>
+                    <th className="py-4 px-6 font-bold">Ngày TT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoices.map((inv) => (
+                    <tr key={inv.invoiceid} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="py-4 px-6 font-bold text-slate-900 uppercase text-xs">{inv.invoicecode}</td>
+                      <td className="py-4 px-6 font-bold text-[#00272C] uppercase text-xs">{inv.planname}</td>
+                      <td className="py-4 px-6 text-slate-600 font-medium text-sm">{inv.billingcycle === 'Yearly' ? 'Năm' : 'Tháng'}</td>
+                      <td className="py-4 px-6 font-bold text-slate-900">{Number(inv.amount).toLocaleString('vi-VN')}đ</td>
+                      <td className="py-4 px-6 text-slate-600 font-medium text-sm">{inv.paymentmethod}</td>
+                      <td className="py-4 px-6 text-slate-500 text-sm">{new Date(inv.paidat).toLocaleString('vi-VN')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Checkout Modal */}
+      {showCheckoutModal && (
+        <div className="fixed inset-0 bg-[#00272C]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl">
+            {paymentSuccess ? (
+              <div className="p-8 text-center animate-scale-up">
+                <div className="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="w-10 h-10" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 mb-2">Thanh toán thành công!</h3>
+                <p className="text-slate-500 mb-6">Gói dịch vụ của bạn đã được kích hoạt.</p>
+                <div className="flex justify-center">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                </div>
+              </div>
+            ) : (
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-slate-900">Thanh toán Gói</h3>
+                  <button onClick={() => setShowCheckoutModal(false)} className="text-slate-400 hover:bg-slate-100 p-2 rounded-full transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="space-y-4 mb-8">
+                  <div 
+                    onClick={() => setPaymentMethod("VNPay")}
+                    className={`cursor-pointer p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${paymentMethod === "VNPay" ? "border-blue-500 bg-blue-50" : "border-slate-100 hover:border-slate-300"}`}
+                  >
+                    <div className="w-12 h-12 bg-white border border-slate-100 rounded-lg flex items-center justify-center shadow-sm">
+                      <span className="text-blue-600 font-black text-sm">VNPAY</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-slate-900">Thanh toán qua VNPAY</h4>
+                      <p className="text-xs text-slate-500">Quét mã QR qua ứng dụng ngân hàng</p>
+                    </div>
+                    {paymentMethod === "VNPay" && <CheckCircle2 className="w-5 h-5 text-blue-500" />}
+                  </div>
+
+                  <div 
+                    onClick={() => setPaymentMethod("Momo")}
+                    className={`cursor-pointer p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${paymentMethod === "Momo" ? "border-pink-500 bg-pink-50" : "border-slate-100 hover:border-slate-300"}`}
+                  >
+                    <div className="w-12 h-12 bg-[#a50064] rounded-lg flex items-center justify-center shadow-sm">
+                      <span className="text-white font-bold text-xs">MOMO</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-slate-900">Thanh toán qua MoMo</h4>
+                      <p className="text-xs text-slate-500">Ví điện tử MoMo</p>
+                    </div>
+                    {paymentMethod === "Momo" && <CheckCircle2 className="w-5 h-5 text-pink-500" />}
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3 mb-6">
+                  <p className="text-xs text-amber-800 leading-relaxed font-medium">
+                    * Lưu ý: Khi nâng cấp gói, thời gian sẽ được tính ngay từ hôm nay. Gói cũ sẽ được tự động chuyển đổi.
+                  </p>
+                </div>
+
+                <button 
+                  onClick={handleConfirmPayment}
+                  disabled={processing}
+                  className="w-full py-4 bg-[#00272C] text-primary rounded-xl font-black text-lg hover:bg-[#003840] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#00272C]/20 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {processing ? <><Loader2 className="w-5 h-5 animate-spin" /> Đang xử lý...</> : "Xác Nhận & Thanh Toán"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

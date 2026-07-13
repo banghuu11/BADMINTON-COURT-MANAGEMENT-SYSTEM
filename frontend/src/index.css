@@ -2,22 +2,39 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL,GRAD,opsz@100..700,0..1,0,24&display=swap");
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-primary: #e1ff51;
-  --color-primary-hover: #c6d632;
-  --color-background: #00272c;
-  --color-surface: #00272c;
-  --color-on-primary: #00272c;
-  --color-on-background: #ffffff;
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+  --color-background: var(--app-background);
+  --color-surface: var(--app-surface);
+  --color-on-primary: #ffffff;
+  --color-on-background: var(--app-on-background);
   --color-secondary: #5d5e61;
 }
 
+:root {
+  --app-background: #f7fafc;
+  --app-surface: #ffffff;
+  --app-on-background: #102a2f;
+  color-scheme: light;
+}
+
+:root.dark {
+  --app-background: #00272c;
+  --app-surface: #00272c;
+  --app-on-background: #ffffff;
+  color-scheme: dark;
+}
+
 body {
-  background-color: #00272C;
-  color: #ffffff;
+  background-color: var(--app-background);
+  color: var(--app-on-background);
   overflow-x: hidden;
   font-family: "Inter", sans-serif;
   min-height: max(884px, 100dvh);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .material-symbols-outlined {
@@ -58,7 +75,7 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-background);
+  background: var(--app-background);
 }
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
@@ -91,4 +108,23 @@ body {
   background-image: linear-gradient(90deg, #11363b 0px, #1a444a 40px, #11363b 80px);
   background-size: 1000px 100%;
   animation: shimmer 2s infinite linear;
+}
+
+.courtsync-map-marker {
+  background: transparent !important;
+  border: 0;
+  width: 44px !important;
+  height: 54px !important;
+}
+
+.courtsync-map-pin {
+  position: relative;
+  z-index: 700;
+  width: 44px;
+  height: 54px;
+  filter: drop-shadow(0 10px 16px rgba(0, 39, 44, 0.35));
+}
+
+.courtsync-map-pin svg {
+  display: block;
 }

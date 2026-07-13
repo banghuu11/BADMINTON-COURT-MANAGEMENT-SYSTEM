@@ -180,7 +180,8 @@ const ReceptionistDashboard = () => {
         },
       );
       const inv = res.invoice;
-      setInvoiceData(inv);
+      // res.details contains { invoice, slots, services }
+      setInvoiceData(res.details || { invoice: inv });
       setPaymentForm({
         amount: Number(inv.totalamount) - Number(inv.paidamount || 0),
         paymentMethod: "Cash",
@@ -201,7 +202,8 @@ const ReceptionistDashboard = () => {
 
     setProcessingPayment(true);
     try {
-      await apiFetch(`/invoices/${invoiceData.invoiceid}/pay`, {
+      const invId = invoiceData.invoice ? invoiceData.invoice.invoiceid : invoiceData.invoiceid;
+      await apiFetch(`/invoices/${invId}/pay`, {
         method: "POST",
         body: JSON.stringify(paymentForm),
       });

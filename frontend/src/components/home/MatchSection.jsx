@@ -4,27 +4,28 @@ import { useNavigate } from "react-router-dom";
 import { useMatches } from "../../hooks/useMatches";
 
 const MatchSection = () => {
-  const { matches, loading, fetchMatches, joinMatch } = useMatches();
+  const { matches, loading, fetchMatches } = useMatches();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchMatches();
   }, [fetchMatches]);
 
-  const handleJoinMatch = async (waitId) => {
-    try {
-      const res = await joinMatch(waitId);
-      alert(
-        `${res.message}\nThông tin người tạo phòng:\n- Tên: ${res.contact.fullname}\n- SĐT: ${res.contact.phonenumber}`,
-      );
-    } catch (err) {
-      if (err.message === "AUTH_REQUIRED") {
-        alert("Vui lòng đăng nhập để tham gia giao lưu!");
-        navigate("/login");
-      } else {
-        alert(err.message);
-      }
+  const handleJoinMatch = (match) => {
+    const params = new URLSearchParams({
+      flow: "joinMatch",
+      waitId: String(match.waitid),
+      playDate: String(match.playdate).slice(0, 10),
+      startTime: String(match.starttime).slice(0, 5),
+      endTime: String(match.endtime).slice(0, 5),
+      matchType: match.matchtype || "doubles",
+    });
+
+    if (!match.courtid) {
+      alert("Thiếu thông tin sân để tham gia kèo.");
+      return;
     }
+    navigate(`/booking/${match.courtid}?${params.toString()}`);
   };
 
   if (loading)
@@ -36,14 +37,14 @@ const MatchSection = () => {
   if (matches.length === 0) return null; // Ẩn section nếu không có trận nào
 
   return (
-    <section className="py-16 bg-slate-900/50">
+    <section className="py-16 bg-slate-100 dark:bg-slate-900/50 transition-colors">
       <div className="max-w-7xl mx-auto px-5">
         <div className="flex justify-between items-end mb-8">
           <div>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight">
+            <h2 className="text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight">
               Giao Lưu Ngay
             </h2>
-            <p className="text-slate-400 mt-2 text-sm md:text-base">
+            <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm md:text-base">
               Tìm kiếm đồng đội và đối thủ phù hợp với trình độ của bạn
             </p>
           </div>
@@ -59,9 +60,9 @@ const MatchSection = () => {
           {matches.map((match) => (
             <div
               key={match.waitid}
-              className="bg-background rounded-3xl p-6 border border-primary/10 shadow-lg hover:shadow-primary/20 hover:border-primary/20 transition-all"
+              className="bg-white dark:bg-background rounded-3xl p-6 border border-slate-200 dark:border-primary/10 shadow-lg hover:shadow-primary/20 hover:border-primary/20 transition-all"
             >
-              <div className="flex items-center gap-4 mb-5 border-b border-white/10 pb-5">
+              <div className="flex items-center gap-4 mb-5 border-b border-slate-200 dark:border-white/10 pb-5">
                 <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0">
                   {match.avatarurl ? (
                     <img
@@ -76,25 +77,25 @@ const MatchSection = () => {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-bold text-white">{match.fullname}</h3>
+                  <h3 className="font-bold text-slate-950 dark:text-white">{match.fullname}</h3>
                   <p className="text-xs text-slate-400">Đang tìm đồng đội</p>
                 </div>
               </div>
 
               <div className="space-y-3 mb-6">
-                <div className="flex items-start gap-2 text-sm text-slate-300">
+                <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                   <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                   <span className="font-medium">
                     {match.venuename} - {match.courtname}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-300">
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                   <Calendar className="w-4 h-4 text-primary shrink-0" />
                   <span className="font-medium">
                     {new Date(match.playdate).toLocaleDateString("vi-VN")}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-300">
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                   <Clock className="w-4 h-4 text-primary shrink-0" />
                   <span className="font-medium">
                     {match.starttime.slice(0, 5)} - {match.endtime.slice(0, 5)}
@@ -103,7 +104,7 @@ const MatchSection = () => {
               </div>
 
               <button
-                onClick={() => handleJoinMatch(match.waitid)}
+                onClick={() => handleJoinMatch(match)}
                 className="w-full py-3 rounded-xl bg-primary text-on-primary font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
               >
                 <Users className="w-5 h-5" /> Tham gia ngay

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BarChart3,
   Users,
@@ -19,10 +19,18 @@ import {
   Activity,
   Calendar,
   Star,
-  Package
+  Package,
+  Printer,
+  Crown,
+  Settings,
+  Image as ImageIcon,
+  Upload,
+  RefreshCcw
 } from "lucide-react";
 import { useAdminDashboard } from "../hooks/useAdminDashboard";
 import { useAdminManagement } from "../hooks/useAdminManagement";
+import { apiFetch } from "../services/api";
+import defaultHeroImage from "../assets/hero.png";
 
 const AdminDashboard = () => {
   const {
@@ -74,6 +82,93 @@ const AdminDashboard = () => {
   const [editItem, setEditItem] = useState(null);
   const [formData, setFormData] = useState({});
   const [submitError, setSubmitError] = useState("");
+  const [systemSettings, setSystemSettings] = useState({ bannerUrl: null });
+  const [bannerFile, setBannerFile] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState("");
+  const [systemLoading, setSystemLoading] = useState(false);
+  const [systemMessage, setSystemMessage] = useState("");
+  const [systemError, setSystemError] = useState("");
+
+  const displayBannerUrl = bannerPreview || systemSettings.bannerUrl || defaultHeroImage;
+
+  const fetchSystemSettings = async () => {
+    try {
+      const data = await apiFetch("/system/public-settings");
+      setSystemSettings({ bannerUrl: data.bannerUrl || null });
+    } catch (err) {
+      setSystemError(err.message || "Không thể tải cấu hình hệ thống.");
+    }
+  };
+
+  useEffect(() => {
+    fetchSystemSettings();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+    };
+  }, [bannerPreview]);
+
+  const handleBannerFileChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+    setBannerFile(file);
+    setBannerPreview(file ? URL.createObjectURL(file) : "");
+    setSystemMessage("");
+    setSystemError("");
+  };
+
+  const handleUploadBanner = async (e) => {
+    e.preventDefault();
+    if (!bannerFile) {
+      setSystemError("Vui lòng chọn ảnh banner trước khi cập nhật.");
+      return;
+    }
+
+    const form = new FormData();
+    form.append("banner", bannerFile);
+    setSystemLoading(true);
+    setSystemMessage("");
+    setSystemError("");
+
+    try {
+      const data = await apiFetch("/system/home-banner", {
+        method: "POST",
+        body: form,
+      });
+      setSystemSettings({ bannerUrl: data.bannerUrl || null });
+      setBannerFile(null);
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+      setBannerPreview("");
+      setSystemMessage("Đã cập nhật banner trang chủ.");
+    } catch (err) {
+      setSystemError(err.message || "Không thể cập nhật banner.");
+    } finally {
+      setSystemLoading(false);
+    }
+  };
+
+  const handleDeleteBanner = async () => {
+    if (!window.confirm("Xóa banner trang chủ hiện tại? Trang chủ sẽ dùng banner mặc định.")) return;
+
+    setSystemLoading(true);
+    setSystemMessage("");
+    setSystemError("");
+
+    try {
+      await apiFetch("/system/home-banner", { method: "DELETE" });
+      setSystemSettings({ bannerUrl: null });
+      setBannerFile(null);
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+      setBannerPreview("");
+      setSystemMessage("Đã xóa banner riêng, hệ thống đang dùng banner mặc định.");
+    } catch (err) {
+      setSystemError(err.message || "Không thể xóa banner.");
+    } finally {
+      setSystemLoading(false);
+    }
+  };
 
   const openCreateModal = (type) => {
     setModalType(type);
@@ -119,6 +214,8 @@ const AdminDashboard = () => {
         address: "",
         city: "Hồ Chí Minh",
         district: "",
+        latitude: "",
+        longitude: "",
         description: "",
         status: "Active",
         openTime: "06:00:00",
@@ -182,6 +279,8 @@ const AdminDashboard = () => {
         address: item.address,
         city: item.city || "Hồ Chí Minh",
         district: item.district || "",
+        latitude: item.latitude || "",
+        longitude: item.longitude || "",
         description: item.description || "",
         status: item.status || "Active",
         openTime: item.opentime || "06:00:00",
@@ -398,6 +497,26 @@ const AdminDashboard = () => {
             >
               <Star className="w-4.5 h-4.5" /> Đánh giá
             </button>
+            <button
+              onClick={() => setActiveTab("subscriptions")}
+              className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-300 ${
+                activeTab === "subscriptions"
+                  ? "bg-primary text-on-primary shadow-lg shadow-primary/20"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Crown className="w-4.5 h-4.5" /> Giao dịch SaaS
+            </button>
+            <button
+              onClick={() => setActiveTab("system")}
+              className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-300 ${
+                activeTab === "system"
+                  ? "bg-primary text-on-primary shadow-lg shadow-primary/20"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Settings className="w-4.5 h-4.5" /> Cấu hình
+            </button>
           </nav>
         </div>
 
@@ -417,8 +536,10 @@ const AdminDashboard = () => {
               {activeTab === "promotions" && `Quản lý Khuyến mãi (${promotions?.length || 0})`}
               {activeTab === "services" && `Quản lý Dịch vụ (${services?.length || 0})`}
               {activeTab === "reviews" && `Quản lý Đánh giá (${reviews?.length || 0})`}
+              {activeTab === "subscriptions" && `Giao dịch gói SaaS (${dashboardData?.subscriptions?.length || 0})`}
+              {activeTab === "system" && "Cấu hình hệ thống"}
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-slate-400 mt-2 text-sm max-w-2xl">
               {activeTab === "overview" && "Thống kê tình hình hoạt động nền tảng và duyệt chủ sân mới."}
               {activeTab === "users" && "Quản lý tài khoản, thêm mới người dùng và phân quyền hệ thống."}
               {activeTab === "plans" && "Quản lý các gói sản phẩm SaaS, chu kỳ thanh toán và đơn giá."}
@@ -429,6 +550,8 @@ const AdminDashboard = () => {
               {activeTab === "promotions" && "Quản lý và cập nhật danh sách các chương trình khuyến mãi, sự kiện giảm giá."}
               {activeTab === "services" && "Giám sát tất cả hàng hóa, dịch vụ và vật tư bán lẻ/cho thuê tại các cơ sở."}
               {activeTab === "reviews" && "Xem xét và quản lý các lượt nhận xét, chấm điểm của khách hàng dành cho các cơ sở sân."}
+              {activeTab === "subscriptions" && "Thống kê danh sách Chủ sân đã mua các gói dịch vụ (SaaS) và tình trạng gói."}
+              {activeTab === "system" && "Quản lý banner trang chủ và các thiết lập hiển thị chung cho người dùng."}
             </p>
           </div>
 
@@ -1048,7 +1171,14 @@ const AdminDashboard = () => {
                         <td className="py-4 pr-4 text-slate-400">
                           {new Date(invoice.createdat).toLocaleString("vi-VN")}
                         </td>
-                        <td className="py-4 text-right">
+                        <td className="py-4 text-right flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => window.open(`/print/invoice/${invoice.invoiceid}`, "_blank")}
+                            className="p-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg border border-blue-500/20"
+                            title="In Hóa Đơn"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={() => handleDelete("invoice", invoice.invoiceid)}
                             className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg border border-red-500/20"
@@ -1233,48 +1363,36 @@ const AdminDashboard = () => {
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="border-b border-white/10 text-slate-400 font-bold">
+                      <th className="pb-3">Cơ sở</th>
                       <th className="pb-3">Khách hàng</th>
-                      <th className="pb-3">Cơ sở sân</th>
-                      <th className="pb-3">Đánh giá</th>
-                      <th className="pb-3">Bình luận</th>
-                      <th className="pb-3">Trạng thái</th>
-                      <th className="pb-3">Ngày gửi</th>
+                      <th className="pb-3 text-center">Đánh giá</th>
+                      <th className="pb-3">Nội dung</th>
+                      <th className="pb-3">Ngày</th>
                       <th className="pb-3 text-right">Hành động</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {reviews.map((review) => (
+                    {reviews?.map((review) => (
                       <tr
                         key={review.reviewid}
                         className="border-b border-white/5 hover:bg-white/5 transition-colors"
                       >
-                        <td className="py-4 pr-4 font-bold text-white">
+                        <td className="py-4 pr-4 font-bold text-white uppercase">
+                          {review.venuename || "Không xác định"}
+                        </td>
+                        <td className="py-4 pr-4 text-slate-300 uppercase">
                           {review.customername || "Ẩn danh"}
                         </td>
-                        <td className="py-4 pr-4 text-slate-200">
-                          {review.venuename}
-                        </td>
-                        <td className="py-4 pr-4 text-amber-400 font-bold">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3.5 h-3.5 fill-amber-400 stroke-none" />
-                            <span>{review.rating} / 5</span>
-                          </div>
-                        </td>
-                        <td className="py-4 pr-4 text-slate-300 max-w-sm truncate" title={review.comment}>
-                          {review.comment || "Không có bình luận"}
-                        </td>
-                        <td className="py-4 pr-4">
-                          <span className={`inline-block px-2 py-0.5 rounded text-[8px] font-bold ${
-                            review.status === "Approved" ? "bg-emerald-500/10 text-emerald-400" :
-                            review.status === "Pending" ? "bg-amber-500/10 text-amber-400" :
-                            "bg-red-500/10 text-red-400"
-                          }`}>
-                            {review.status === "Approved" ? "Đã hiện" :
-                             review.status === "Pending" ? "Chờ duyệt" : "Đã ẩn"}
+                        <td className="py-4 pr-4 text-center">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400">
+                            {review.rating} <Star className="w-3 h-3 fill-current" />
                           </span>
                         </td>
+                        <td className="py-4 pr-4 text-slate-300 max-w-xs truncate" title={review.comment}>
+                          {review.comment || "Không có nội dung"}
+                        </td>
                         <td className="py-4 pr-4 text-slate-400">
-                          {new Date(review.createdat).toLocaleDateString("vi-VN")}
+                          {new Date(review.createdat).toLocaleString("vi-VN")}
                         </td>
                         <td className="py-4 text-right">
                           <button
@@ -1296,6 +1414,126 @@ const AdminDashboard = () => {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {/* ==========================================
+              TAB 11: CẤU HÌNH HỆ THỐNG
+              ========================================== */}
+          {activeTab === "system" && (
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6 animate-fade-in">
+              <form
+                onSubmit={handleUploadBanner}
+                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl space-y-6"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/10 pb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                      <ImageIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-black text-white">
+                        Banner trang chủ người dùng
+                      </h2>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Nếu chưa upload ảnh riêng, hệ thống sẽ dùng banner mặc định.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={fetchSystemSettings}
+                    className="w-fit px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 inline-flex items-center gap-2 transition-colors"
+                  >
+                    <RefreshCcw className="w-3.5 h-3.5" />
+                    Tải lại
+                  </button>
+                </div>
+
+                <div className="aspect-[16/6] min-h-[220px] rounded-3xl overflow-hidden border border-white/10 bg-[#001f23] relative">
+                  <img
+                    src={displayBannerUrl}
+                    alt="Preview banner trang chủ"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent"></div>
+                  <div className="absolute inset-x-0 bottom-0 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/75">
+                      {systemSettings.bannerUrl ? "Banner đang dùng" : "Banner mặc định"}
+                    </p>
+                    <p className="text-sm font-black text-white mt-1">
+                      Tìm sân nhanh. Chơi cực chất.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 items-end">
+                  <label className="block">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Chọn ảnh banner
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBannerFileChange}
+                      className="mt-2 block w-full text-xs text-slate-300 file:mr-4 file:rounded-xl file:border-0 file:bg-primary file:px-4 file:py-2.5 file:text-xs file:font-black file:text-on-primary hover:file:bg-primary-hover"
+                    />
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="submit"
+                      disabled={systemLoading}
+                      className="px-4 py-3 rounded-xl bg-primary text-on-primary hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed text-xs font-black inline-flex items-center gap-2 shadow-lg shadow-primary/10 transition-all"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {systemLoading ? "Đang lưu..." : "Cập nhật"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteBanner}
+                      disabled={systemLoading || !systemSettings.bannerUrl}
+                      className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed text-xs font-black inline-flex items-center gap-2 transition-all"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Xóa ảnh riêng
+                    </button>
+                  </div>
+                </div>
+
+                {systemMessage && (
+                  <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-bold">
+                    {systemMessage}
+                  </div>
+                )}
+                {systemError && (
+                  <div className="p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs font-bold">
+                    {systemError}
+                  </div>
+                )}
+              </form>
+
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 h-fit space-y-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white">Text hiển thị khi chưa có dữ liệu</h3>
+                    <p className="text-xs text-slate-400 mt-1">Không để giao diện bị trống.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 text-xs text-slate-300">
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                    <p className="font-bold text-white">Banner</p>
+                    <p className="text-slate-400 mt-1">Chưa có ảnh riêng, hệ thống sẽ dùng banner mặc định.</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                    <p className="font-bold text-white">Thông báo</p>
+                    <p className="text-slate-400 mt-1">Khi chưa có thông báo, popup sẽ hiển thị dòng hướng dẫn thay vì chỉ báo rỗng.</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1688,6 +1926,30 @@ const AdminDashboard = () => {
                       name="closeTime"
                       placeholder="23:00:00"
                       value={formData.closeTime}
+                      onChange={handleInputChange}
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Vĩ độ</label>
+                    <input
+                      type="number"
+                      step="any"
+                      name="latitude"
+                      placeholder="10.7761"
+                      value={formData.latitude}
+                      onChange={handleInputChange}
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Kinh độ</label>
+                    <input
+                      type="number"
+                      step="any"
+                      name="longitude"
+                      placeholder="106.6713"
+                      value={formData.longitude}
                       onChange={handleInputChange}
                       className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary"
                     />

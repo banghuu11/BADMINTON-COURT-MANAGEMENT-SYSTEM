@@ -85,8 +85,8 @@ const Court3D = ({
                     : isOccupied
                       ? "bg-red-500 text-white border-red-600 cursor-not-allowed opacity-90 scale-100 p-0 overflow-hidden"
                       : isSelected
-                        ? "bg-[#00272C] text-primary border-primary scale-110 shadow-[0_10px_20px_rgba(225,255,81,0.6)] cursor-pointer hover:-translate-y-2"
-                        : "bg-primary text-[#00272C] border-white cursor-pointer hover:scale-105 hover:bg-[#C6D632] hover:-translate-y-2 shadow-[0_10px_15px_rgba(0,0,0,0.5)]"
+                        ? "bg-[#00272C] text-primary border-primary scale-110 shadow-[0_10px_20px_rgba(16,185,129,0.6)] cursor-pointer hover:-translate-y-2"
+                        : "bg-primary text-white border-white cursor-pointer hover:scale-105 hover:bg-[#059669] hover:-translate-y-2 shadow-[0_10px_15px_rgba(0,0,0,0.5)]"
                 }`}
                 title={
                   isOccupied

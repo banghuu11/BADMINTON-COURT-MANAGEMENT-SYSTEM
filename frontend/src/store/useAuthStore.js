@@ -54,6 +54,15 @@ const useAuthStore = create((set, get) => ({
       isAuthenticated: true,
       user: data.user,
     });
+    
+    // Fetch full profile immediately after login to get avatarurl and other details
+    try {
+      const profileData = await authService.getProfile();
+      set({ user: profileData.user });
+    } catch (err) {
+      console.error("Lỗi lấy thông tin sau khi login:", err);
+    }
+    
     return data;
   },
 

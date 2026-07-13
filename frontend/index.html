@@ -8,6 +8,14 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function () {
+        var storedTheme = localStorage.getItem("courtlink-theme") || "dark";
+        if (storedTheme !== "light" && storedTheme !== "dark") storedTheme = "dark";
+        document.documentElement.classList.toggle("dark", storedTheme === "dark");
+        document.documentElement.dataset.theme = storedTheme;
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

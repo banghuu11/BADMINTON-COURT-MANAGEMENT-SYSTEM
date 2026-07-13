@@ -140,57 +140,57 @@ const Profile = () => {
   if (!user) return null;
 
   return (
-    <div className="max-w-5xl mx-auto px-5 py-8 animate-fade-in pb-24 text-white">
-      <h1 className="text-3xl font-extrabold text-white tracking-tight mb-8">
+    <div className="max-w-5xl mx-auto px-5 py-8 animate-fade-in pb-24 text-slate-950 dark:text-white">
+      <h1 className="mb-8 text-3xl font-extrabold tracking-normal text-slate-950 dark:text-white">
         Hồ sơ cá nhân
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
         {/* Cột thông tin cá nhân (Glassmorphic) */}
         <div className="space-y-6">
-          <div className="bg-background/40 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-2xl text-center">
-            <div className="w-24 h-24 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-primary/20 shadow-[0_0_15px_rgba(225,255,81,0.15)] overflow-hidden">
+          <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm dark:border-white/10 dark:bg-white/5">
+            <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-primary/20 bg-primary/10 text-primary">
               {user.avatarurl ? (
                 <img src={user.avatarurl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
                 <User className="w-12 h-12" />
               )}
             </div>
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-xl font-bold text-slate-950 dark:text-white">
               {user.fullname}
             </h2>
             <p className="text-slate-400 text-sm mb-6">@{user.username}</p>
 
             <div className="space-y-3 text-left">
-              <div className="flex items-center gap-3 text-sm text-slate-300 p-3 bg-white/5 rounded-xl border border-white/5">
+              <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
                 <Phone className="w-4 h-4 text-primary shrink-0" />
                 <span className="font-semibold">{user.phonenumber}</span>
               </div>
-              <div className="flex items-center gap-3 text-sm text-slate-300 p-3 bg-white/5 rounded-xl border border-white/5">
+              <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
                 <Mail className="w-4 h-4 text-primary shrink-0" />
                 <span className="font-semibold truncate">
                   {user.email || "Chưa cập nhật email"}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-sm text-slate-300 p-3 bg-white/5 rounded-xl border border-white/5">
+              <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
                 <User className="w-4 h-4 text-primary shrink-0" />
                 <span className="font-semibold">
                   Giới tính: {user.gender || "Chưa cập nhật"}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-sm text-slate-300 p-3 bg-white/5 rounded-xl border border-white/5">
+              <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
                 <Calendar className="w-4 h-4 text-primary shrink-0" />
                 <span className="font-semibold">
                   Ngày sinh: {user.dateofbirth ? new Date(user.dateofbirth).toLocaleDateString("vi-VN") : "Chưa cập nhật"}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-sm text-slate-300 p-3 bg-white/5 rounded-xl border border-white/5">
+              <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
                 <MapPin className="w-4 h-4 text-primary shrink-0" />
                 <span className="font-semibold truncate" title={user.address || "Chưa cập nhật địa chỉ"}>
                   {user.address || "Chưa cập nhật địa chỉ"}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-sm text-slate-300 p-3 bg-white/5 rounded-xl border border-white/5">
+              <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
                 <Award className="w-4 h-4 text-primary shrink-0" />
                 <span className="font-semibold">
                   Trình độ: {user.skilllevel || "Mới chơi"}
@@ -200,7 +200,7 @@ const Profile = () => {
 
             <button
               onClick={() => navigate("/edit-profile")}
-              className="w-full mt-6 py-3 text-[#00272C] bg-primary hover:bg-[#C6D632] rounded-xl font-bold text-sm transition-colors border border-primary/20 flex justify-center items-center gap-2 shadow-lg shadow-primary/10"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-md border border-primary bg-primary py-3 text-sm font-bold text-on-primary transition-colors hover:bg-primary-hover"
             >
               Chỉnh sửa hồ sơ
             </button>
@@ -210,7 +210,7 @@ const Profile = () => {
                 logout();
                 navigate("/login");
               }}
-              className="w-full mt-3 py-3 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-xl font-bold text-sm transition-colors border border-red-500/20 flex justify-center items-center gap-2"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-red-500/20 bg-red-500/10 py-3 text-sm font-bold text-red-400 transition-colors hover:bg-red-500/20"
             >
               <LogOut className="w-4 h-4" /> Đăng xuất
             </button>
@@ -219,12 +219,12 @@ const Profile = () => {
 
         {/* Cột lịch sử đặt sân (Glassmorphic list) */}
         <div className="md:col-span-2 space-y-4">
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-slate-950 dark:text-white mb-4 flex items-center gap-2">
             <Calendar className="w-6 h-6 text-primary" /> Lịch sử đặt sân
           </h2>
 
           {loading ? (
-            <div className="text-center py-12 text-slate-400 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl">
+            <div className="rounded-lg border border-slate-200 bg-white py-12 text-center text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
               <p className="font-semibold text-sm">Đang tải lịch sử đặt sân...</p>
             </div>
@@ -233,16 +233,16 @@ const Profile = () => {
               {error}
             </div>
           ) : bookings.length === 0 ? (
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-12 text-center backdrop-blur-xl">
-              <div className="w-16 h-16 bg-white/5 text-slate-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
+            <div className="rounded-lg border border-slate-200 bg-white p-12 text-center dark:border-white/10 dark:bg-white/5">
+              <div className="w-16 h-16 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-200 dark:border-white/5">
                 <Calendar className="w-8 h-8" />
               </div>
-              <p className="text-slate-300 font-bold mb-4">
+              <p className="text-slate-600 dark:text-slate-300 font-bold mb-4">
                 Bạn chưa có lịch sử đặt sân nào.
               </p>
               <button
                 onClick={() => navigate("/courts")}
-                className="bg-primary text-[#00272C] font-bold px-6 py-2.5 rounded-xl hover:bg-[#C6D632] transition-colors shadow-lg shadow-primary/10"
+                className="rounded-md bg-primary px-6 py-2.5 font-bold text-on-primary transition-colors hover:bg-primary-hover"
               >
                 Tìm sân đặt ngay
               </button>
@@ -252,9 +252,9 @@ const Profile = () => {
               {bookings.map((booking) => (
                 <div
                   key={booking.bookingid}
-                  className="bg-[#00272c]/40 backdrop-blur-xl border border-white/10 rounded-3xl p-5 shadow-xl hover:border-primary/20 transition-all duration-300"
+                  className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:border-slate-300 dark:border-white/10 dark:bg-white/5"
                 >
-                  <div className="flex flex-wrap gap-2 justify-between items-start mb-4 border-b border-white/5 pb-4">
+                  <div className="flex flex-wrap gap-2 justify-between items-start mb-4 border-b border-slate-200 dark:border-white/5 pb-4">
                     <div>
                       <span className="text-[10px] font-bold text-primary tracking-wider">
                         MÃ ĐƠN: {booking.bookingcode}
@@ -295,10 +295,10 @@ const Profile = () => {
                       booking.slots.map((slot, index) => (
                         <div
                           key={index}
-                          className="bg-white/5 p-4 rounded-2xl border border-white/5 flex justify-between items-center"
+                          className="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/5 flex justify-between items-center"
                         >
                           <div>
-                            <p className="font-bold text-white text-sm flex items-center gap-2 flex-wrap">
+                            <p className="font-bold text-slate-950 dark:text-white text-sm flex items-center gap-2 flex-wrap">
                               <span>{slot.venueName} - {slot.courtName}</span>
                               {slot.slotStatus === "Playing" && (
                                 <span className="text-[9px] bg-primary/20 text-primary border border-primary/30 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
@@ -317,7 +317,7 @@ const Profile = () => {
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-extrabold text-white">
+                            <p className="font-extrabold text-slate-950 dark:text-white">
                               {Number(slot.appliedPrice).toLocaleString()}đ
                             </p>
                           </div>
@@ -325,7 +325,7 @@ const Profile = () => {
                       ))}
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center">
+                  <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/5 flex justify-between items-center">
                     <span className="text-xs font-bold text-slate-400">
                       Tổng tiền dự kiến
                     </span>

@@ -676,12 +676,31 @@ const addServiceToBooking = async (req, res) => {
 const getOpenMatches = async (req, res) => {
   try {
     const query = `
-      SELECT w.WaitId, w.PlayDate, w.StartTime, w.EndTime, 
+      SELECT w.WaitId, w.PlayDate, w.StartTime, w.EndTime,
+             CASE
+               WHEN match_booking.Note = 'Đánh đơn' THEN 'singles'
+               WHEN match_booking.Note = 'Tìm đồng đội đánh đôi' THEN 'doubles'
+               ELSE 'doubles'
+             END AS MatchType,
+             match_booking.PositionIndex AS CreatorPositionIndex,
              u.FullName, u.AvatarUrl, u.SkillLevel, c.CourtId, c.CourtName, v.VenueName, v.Address
       FROM WaitingList w
       JOIN AppUser u ON w.CustomerId = u.UserId
       JOIN Court c ON w.CourtId = c.CourtId
       JOIN Venue v ON c.VenueId = v.VenueId
+      LEFT JOIN LATERAL (
+        SELECT b.Note, bs.PositionIndex
+        FROM Booking b
+        JOIN BookingSlot bs ON bs.BookingId = b.BookingId
+        WHERE b.CustomerId = w.CustomerId
+          AND bs.CourtId = w.CourtId
+          AND bs.PlayDate = w.PlayDate
+          AND bs.StartTime = w.StartTime
+          AND bs.EndTime = w.EndTime
+          AND bs.SlotStatus NOT IN ('Cancelled', 'NoShow')
+        ORDER BY b.CreatedAt DESC
+        LIMIT 1
+      ) match_booking ON TRUE
       WHERE w.Status = 'Waiting' AND w.PlayDate >= CURRENT_DATE
       ORDER BY w.PlayDate ASC, w.StartTime ASC LIMIT 5
     `;

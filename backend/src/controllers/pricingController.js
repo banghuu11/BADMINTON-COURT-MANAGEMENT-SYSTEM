@@ -84,4 +84,38 @@ const deletePricing = async (req, res) => {
   }
 };
 
-module.exports = { createPricing, getPricingByCourt, deletePricing };
+// [PUT] /api/pricing/:pricingId - Cập nhật cấu hình giá
+const updatePricing = async (req, res) => {
+  const { pricingId } = req.params;
+  const { slotName, dayType, startTime, endTime, price } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const ownerCheck = await pool.query(
+      `SELECT v.VenueId FROM Venue v 
+       JOIN Court c ON c.VenueId = v.VenueId 
+       JOIN TimeSlotPricing p ON p.CourtId = c.CourtId
+       JOIN CourtOwnerProfile cop ON v.OwnerId = cop.OwnerId 
+       WHERE p.PricingId = $1 AND cop.UserId = $2`,
+      [pricingId, userId]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      return res.status(403).json({ error: "Bạn không có quyền cập nhật giá này!" });
+    }
+
+    const updateQuery = `
+      UPDATE TimeSlotPricing 
+      SET SlotName = $1, DayType = $2, StartTime = $3, EndTime = $4, Price = $5
+      WHERE PricingId = $6 RETURNING *
+    `;
+    const updated = await pool.query(updateQuery, [slotName, dayType || "Weekday", startTime, endTime, price, pricingId]);
+
+    res.json({ message: "Cập nhật giá thành công!", pricing: updated.rows[0] });
+  } catch (error) {
+    console.error("Lỗi updatePricing:", error);
+    res.status(500).json({ error: "Lỗi server khi cập nhật giá.", details: error.message });
+  }
+};
+
+module.exports = { createPricing, getPricingByCourt, updatePricing, deletePricing };

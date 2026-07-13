@@ -1,18 +1,15 @@
 import { useState, useEffect } from "react";
-import { Ticket, Copy, Check, Calendar, Landmark, AlertCircle } from "lucide-react";
+import { AlertCircle, Calendar, Check, Copy, Landmark, Ticket } from "lucide-react";
 import { apiFetch } from "../services/api";
 import { Navigate } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
 
 const Promotions = () => {
   const user = useAuthStore((state) => state.user);
-  if (user && (user.roleid === 1 || user.roleId === 1)) {
-    return <Navigate to="/" replace />;
-  }
-
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState(null);
+  const roleId = Number(user?.roleid || user?.roleId || user?.RoleId);
 
   useEffect(() => {
     const fetchPromotions = async () => {
@@ -39,113 +36,114 @@ const Promotions = () => {
     }, 2000);
   };
 
+  if (roleId === 1) {
+    return <Navigate to="/" replace />;
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-5 py-8 pb-24 animate-fade-in">
-      {/* Page Header */}
-      <div className="mb-10 text-center">
-        <div className="inline-flex p-3 bg-primary/10 rounded-2xl border border-primary/20 text-primary mb-4 shadow-[0_0_15px_rgba(225,255,81,0.15)]">
-          <Ticket className="w-8 h-8" />
+    <div className="animate-fade-in pb-24">
+      <section className="border-b border-slate-200 bg-white dark:border-white/10 dark:bg-background">
+        <div className="mx-auto max-w-7xl px-5 py-12 text-center lg:px-8">
+          <p className="mx-auto mb-4 inline-flex items-center gap-2 rounded bg-primary px-3 py-1 text-xs font-extrabold text-on-primary">
+            <Ticket className="h-4 w-4" />
+            Ưu đãi đang chạy
+          </p>
+          <h1 className="text-4xl font-extrabold tracking-normal text-slate-950 dark:text-white">
+            Mã giảm giá đặt sân
+          </h1>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+            Lưu nhanh mã khuyến mãi từ các cơ sở đang hoạt động và áp dụng khi đặt sân.
+          </p>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-          Ưu Đãi & <span className="text-primary">Khuyến Mãi</span>
-        </h1>
-        <p className="text-slate-400 mt-2 text-sm sm:text-base max-w-md mx-auto">
-          Nhận mã giảm giá độc quyền, đặt sân chơi cực chất với chi phí tiết kiệm nhất.
-        </p>
-      </div>
+      </section>
 
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-400 text-sm font-semibold">Đang tải mã giảm giá...</p>
-        </div>
-      ) : promotions.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {promotions.map((promo) => {
-            const isDiscountPercent = promo.discounttype === "Percentage" || promo.discounttype === "Percent";
-            const formattedValue = isDiscountPercent
-              ? `${promo.discountvalue}%`
-              : `${Number(promo.discountvalue).toLocaleString("vi-VN")}đ`;
+      <main className="mx-auto max-w-7xl px-5 py-8 lg:px-8">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-20">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <p className="text-sm font-semibold text-slate-400">Đang tải mã giảm giá...</p>
+          </div>
+        ) : promotions.length > 0 ? (
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {promotions.map((promo) => {
+              const isDiscountPercent = promo.discounttype === "Percentage" || promo.discounttype === "Percent";
+              const formattedValue = isDiscountPercent
+                ? `${promo.discountvalue}%`
+                : `${Number(promo.discountvalue).toLocaleString("vi-VN")}đ`;
+              const code = promo.promotionname.toUpperCase().replace(/\s+/g, "_");
 
-            return (
-              <div
-                key={promo.promotionid}
-                className="relative overflow-hidden rounded-3xl border border-white/10 bg-background/40 backdrop-blur-xl shadow-xl hover:border-primary/30 transition-all duration-300 group hover:-translate-y-1"
-              >
-                {/* Neon Top Bar */}
-                <div className="h-1.5 w-full bg-gradient-to-r from-primary to-emerald-400 opacity-80"></div>
-
-                {/* Card Body */}
-                <div className="p-6 flex flex-col justify-between h-full min-h-[280px]">
-                  {/* Promo info */}
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-start">
-                      <span className="inline-flex px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-xs font-bold text-primary">
-                        Giảm {formattedValue}
-                      </span>
-                      <div className="flex items-center gap-1 text-[10px] text-slate-400 uppercase tracking-widest font-bold font-mono">
-                        <Landmark className="w-3.5 h-3.5 text-primary" />
-                        <span className="truncate max-w-[120px]">{promo.venuename}</span>
+              return (
+                <div
+                  key={promo.promotionid}
+                  className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl dark:border-white/10 dark:bg-white/5"
+                >
+                  <div className="border-b border-slate-100 p-5 dark:border-white/10">
+                    <div className="mb-5 flex items-start justify-between gap-4">
+                      <div className="rounded-md bg-primary px-4 py-3 text-on-primary">
+                        <p className="text-xs font-bold uppercase">Giảm</p>
+                        <p className="text-2xl font-extrabold leading-none">
+                          {formattedValue}
+                        </p>
                       </div>
+                      <span className="inline-flex max-w-[160px] items-center gap-1 truncate text-xs font-bold uppercase text-slate-400">
+                        <Landmark className="h-4 w-4 text-primary" />
+                        {promo.venuename}
+                      </span>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <h3 className="text-lg font-bold text-white group-hover:text-primary transition-colors">
-                        {promo.promotionname}
-                      </h3>
-                      <p className="text-slate-400 text-xs leading-relaxed line-clamp-2">
-                        {promo.description || "Không có mô tả chi tiết."}
-                      </p>
-                    </div>
+                    <h3 className="text-xl font-extrabold text-slate-950 dark:text-white">
+                      {promo.promotionname}
+                    </h3>
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                      {promo.description || "Không có mô tả chi tiết."}
+                    </p>
                   </div>
 
-                  {/* Conditions & Action */}
-                  <div className="mt-6 pt-4 border-t border-white/5 space-y-4">
-                    <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                  <div className="space-y-4 p-5">
+                    <div className="grid grid-cols-2 gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
                       <div>
-                        Đơn tối thiểu:{" "}
-                        <span className="text-white block mt-0.5">
+                        <span className="block uppercase">Đơn tối thiểu</span>
+                        <span className="mt-1 block text-sm font-extrabold text-slate-950 dark:text-white">
                           {Number(promo.minorderamount || 0).toLocaleString("vi-VN")}đ
                         </span>
                       </div>
                       {promo.maxdiscount && (
                         <div>
-                          Giảm tối đa:{" "}
-                          <span className="text-white block mt-0.5">
+                          <span className="block uppercase">Giảm tối đa</span>
+                          <span className="mt-1 block text-sm font-extrabold text-slate-950 dark:text-white">
                             {Number(promo.maxdiscount).toLocaleString("vi-VN")}đ
                           </span>
                         </div>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <Calendar className="w-4 h-4 text-primary shrink-0" />
+                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                      <Calendar className="h-4 w-4 shrink-0 text-primary" />
                       <span>
                         HSD: {new Date(promo.enddate).toLocaleDateString("vi-VN")}
                       </span>
                     </div>
 
-                    {/* Copy Coupon Box */}
-                    <div className="flex items-center justify-between gap-3 p-3 bg-white/5 rounded-xl border border-white/10 group/code hover:bg-white/10 transition-colors">
-                      <div className="font-mono text-sm font-bold text-primary tracking-wider uppercase pl-1 select-all">
-                        {promo.promotionname.toUpperCase().replace(/\s+/g, "_")}
+                    <div className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 transition-colors dark:border-white/10 dark:bg-white/5">
+                      <div className="select-all truncate pl-1 font-mono text-sm font-bold uppercase tracking-wider text-slate-950 dark:text-white">
+                        {code}
                       </div>
                       <button
-                        onClick={() => handleCopy(promo.promotionname.toUpperCase().replace(/\s+/g, "_"))}
-                        className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 ${
-                          copiedCode === promo.promotionname.toUpperCase().replace(/\s+/g, "_")
+                        onClick={() => handleCopy(code)}
+                        className={`flex cursor-pointer items-center gap-1.5 rounded-md px-3.5 py-2 text-xs font-bold transition-all active:scale-95 ${
+                          copiedCode === code
                             ? "bg-emerald-500 text-white"
-                            : "bg-primary text-on-primary hover:bg-primary-hover shadow-md shadow-primary/10"
+                            : "bg-slate-950 text-white hover:bg-primary hover:text-on-primary dark:bg-white dark:text-slate-950"
                         }`}
                       >
-                        {copiedCode === promo.promotionname.toUpperCase().replace(/\s+/g, "_") ? (
+                        {copiedCode === code ? (
                           <>
-                            <Check className="w-3.5 h-3.5" />
+                            <Check className="h-3.5 w-3.5" />
                             Đã lưu
                           </>
                         ) : (
                           <>
-                            <Copy className="w-3.5 h-3.5" />
+                            <Copy className="h-3.5 w-3.5" />
                             Sao chép
                           </>
                         )}
@@ -153,19 +151,19 @@ const Promotions = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="max-w-md mx-auto text-center py-16 px-6 bg-background/20 rounded-3xl border border-white/10 backdrop-blur-md">
-          <AlertCircle className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-          <h3 className="text-lg font-bold text-white mb-1">Chưa có khuyến mãi nào</h3>
-          <p className="text-slate-400 text-sm">
-            Hiện tại các cơ sở chưa phát hành chương trình khuyến mãi nào. Hãy quay lại sau nhé!
-          </p>
-        </div>
-      )}
+              );
+            })}
+          </div>
+        ) : (
+          <div className="mx-auto max-w-md rounded-lg border border-slate-200 bg-white px-6 py-16 text-center dark:border-white/10 dark:bg-white/5">
+            <AlertCircle className="mx-auto mb-3 h-12 w-12 text-slate-500" />
+            <h3 className="mb-1 text-lg font-bold text-slate-950 dark:text-white">Chưa có khuyến mãi nào</h3>
+            <p className="text-sm text-slate-400">
+              Hiện tại các cơ sở chưa phát hành chương trình khuyến mãi nào. Hãy quay lại sau nhé!
+            </p>
+          </div>
+        )}
+      </main>
     </div>
   );
 };

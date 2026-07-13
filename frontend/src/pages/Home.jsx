@@ -19,11 +19,13 @@ const Home = () => {
   // Khách hàng (Customer - RoleId 5 hoặc undefined nếu là Guest) sẽ load UI bình thường
 
   return (
-    <div className="pb-12 animate-fade-in">
+    <div className="pb-16 animate-fade-in">
       <HeroSection />
-      <TrendingCourts />
-      <MatchSection />
-      <StatsSection />
+      <div className="space-y-16 md:space-y-20">
+        <TrendingCourts />
+        <MatchSection />
+        <StatsSection />
+      </div>
     </div>
   );
 };

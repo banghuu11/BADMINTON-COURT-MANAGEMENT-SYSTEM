@@ -1,4 +1,4 @@
-import { Receipt, X, DollarSign } from "lucide-react";
+import { Receipt, X, DollarSign, Printer } from "lucide-react";
 
 const InvoiceModal = ({
   isOpen,
@@ -151,15 +151,42 @@ const InvoiceModal = ({
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={processingPayment}
-                className={`w-full py-3.5 rounded-xl font-bold text-base transition-colors shadow-lg flex items-center justify-center gap-2 mt-2 ${processingPayment ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none" : "bg-primary text-[#00272C] hover:bg-[#C6D632] shadow-[0_0_15px_rgba(225,255,81,0.3)]"}`}
-              >
-                <DollarSign className="w-5 h-5" />{" "}
-                {processingPayment ? "Đang xử lý..." : "Xác nhận thu tiền"}
-              </button>
+              <div className="flex gap-3 mt-2">
+                <button
+                  type="submit"
+                  disabled={processingPayment}
+                  className={`flex-1 py-3.5 rounded-xl font-bold text-base transition-colors shadow-lg flex items-center justify-center gap-2 ${processingPayment ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none" : "bg-primary text-[#00272C] hover:bg-[#C6D632] shadow-[0_0_15px_rgba(225,255,81,0.3)]"}`}
+                >
+                  <DollarSign className="w-5 h-5" />{" "}
+                  {processingPayment ? "Đang xử lý..." : "Xác nhận thu"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.open(`/print/invoice/${invoiceData.invoiceid}`, "_blank")}
+                  className="px-5 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors flex items-center justify-center shadow-lg shadow-blue-600/30"
+                  title="In hóa đơn (QR)"
+                >
+                  <Printer className="w-5 h-5" />
+                </button>
+              </div>
             </form>
+          )}
+
+          {invoiceData.paymentstatus === "Paid" && (
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={onClose}
+                className="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors"
+              >
+                Đóng
+              </button>
+              <button
+                onClick={() => window.open(`/print/invoice/${invoiceData.invoiceid}`, "_blank")}
+                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors flex justify-center items-center gap-2"
+              >
+                <Printer className="w-5 h-5" /> In Hóa Đơn
+              </button>
+            </div>
           )}
         </div>
       </div>

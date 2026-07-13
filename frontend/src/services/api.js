@@ -14,7 +14,11 @@ api.interceptors.request.use(
   (config) => {
     // Xóa Content-Type mặc định để trình duyệt tự đính kèm boundary khi gửi FormData (File)
     if (config.data instanceof FormData) {
-      delete config.headers["Content-Type"];
+      if (typeof config.headers.delete === "function") {
+        config.headers.delete("Content-Type");
+      } else {
+        delete config.headers["Content-Type"];
+      }
     }
 
     // Lấy Access Token từ memory (Zustand state) thay vì localStorage (An toàn khỏi XSS)

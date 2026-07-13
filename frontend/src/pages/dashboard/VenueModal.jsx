@@ -94,6 +94,37 @@ const VenueModal = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-slate-700 text-sm font-bold mb-1.5">
+                Vĩ độ
+              </label>
+              <input
+                type="number"
+                step="any"
+                name="latitude"
+                value={formData.latitude || ""}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
+                placeholder="VD: 10.7761"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-700 text-sm font-bold mb-1.5">
+                Kinh độ
+              </label>
+              <input
+                type="number"
+                step="any"
+                name="longitude"
+                value={formData.longitude || ""}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary text-slate-900"
+                placeholder="VD: 106.6713"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-slate-700 text-sm font-bold mb-1.5">
                 Giờ mở cửa
               </label>
               <input

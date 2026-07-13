@@ -331,7 +331,7 @@ const getAllVenuesAdmin = async (req, res) => {
 
 // [POST] /api/admin/venues
 const createVenue = async (req, res) => {
-  const { ownerId, venueName, address, city, district, description, status, openTime, closeTime } = req.body;
+  const { ownerId, venueName, address, city, district, description, status, openTime, closeTime, latitude, longitude } = req.body;
 
   if (!venueName || !address || !city || !district) {
     return res.status(400).json({ error: "Vui lòng điền tên cơ sở, địa chỉ, quận/huyện, tỉnh/thành phố." });
@@ -339,8 +339,8 @@ const createVenue = async (req, res) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO Venue (OwnerId, VenueName, Address, City, District, Description, Status, OpenTime, CloseTime)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO Venue (OwnerId, VenueName, Address, City, District, Description, Status, OpenTime, CloseTime, Latitude, Longitude)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         ownerId || null,
@@ -351,7 +351,9 @@ const createVenue = async (req, res) => {
         description || "",
         status || "Active",
         openTime || "06:00:00",
-        closeTime || "23:00:00"
+        closeTime || "23:00:00",
+        latitude || null,
+        longitude || null
       ]
     );
 
@@ -365,15 +367,15 @@ const createVenue = async (req, res) => {
 // [PUT] /api/admin/venues/:id
 const updateVenue = async (req, res) => {
   const venueId = req.params.id;
-  const { ownerId, venueName, address, city, district, description, status, openTime, closeTime } = req.body;
+  const { ownerId, venueName, address, city, district, description, status, openTime, closeTime, latitude, longitude } = req.body;
 
   try {
     const result = await pool.query(
       `UPDATE Venue 
-       SET OwnerId = $1, VenueName = $2, Address = $3, City = $4, District = $5, Description = $6, Status = $7, OpenTime = $8, CloseTime = $9, UpdatedAt = CURRENT_TIMESTAMP
-       WHERE VenueId = $10
+       SET OwnerId = $1, VenueName = $2, Address = $3, City = $4, District = $5, Description = $6, Status = $7, OpenTime = $8, CloseTime = $9, Latitude = $10, Longitude = $11, UpdatedAt = CURRENT_TIMESTAMP
+       WHERE VenueId = $12
        RETURNING *`,
-      [ownerId || null, venueName, address, city, district, description || "", status, openTime, closeTime, venueId]
+      [ownerId || null, venueName, address, city, district, description || "", status, openTime, closeTime, latitude || null, longitude || null, venueId]
     );
 
     if (result.rows.length === 0) {
@@ -407,6 +409,21 @@ const deleteVenue = async (req, res) => {
 // 5. QUẢN LÝ SÂN (COURTS CRUD)
 // ==========================================
 
+const createDefaultPricingForCourt = async (courtId) => {
+  await pool.query(
+    `INSERT INTO TimeSlotPricing (CourtId, SlotName, StartTime, EndTime, Price, DayType, IsActive)
+     SELECT $1, slot_name, start_time::time, end_time::time, price, 'All', TRUE
+     FROM (VALUES
+       ('Giờ thấp điểm', '05:00:00', '17:00:00', 80000.00),
+       ('Giờ cao điểm', '17:00:00', '22:00:00', 120000.00)
+     ) AS defaults(slot_name, start_time, end_time, price)
+     WHERE NOT EXISTS (
+       SELECT 1 FROM TimeSlotPricing WHERE CourtId = $1
+     )`,
+    [courtId],
+  );
+};
+
 // [GET] /api/admin/courts
 const getAllCourtsAdmin = async (req, res) => {
   try {
@@ -438,6 +455,7 @@ const createCourt = async (req, res) => {
        RETURNING *`,
       [venueId, courtName, surfaceType || "PVC 4.5mm", status || "Available", notes || ""]
     );
+    await createDefaultPricingForCourt(result.rows[0].courtid);
 
     res.status(201).json({ message: "Tạo sân thành công!", court: result.rows[0] });
   } catch (error) {

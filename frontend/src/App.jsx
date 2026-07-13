@@ -28,6 +28,8 @@ import NotificationsPage from "./pages/NotificationsPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import MockPayment from "./pages/payment/MockPayment";
 import MySubscription from "./pages/owner/MySubscription";
+import PrintableInvoice from "./pages/booking/PrintableInvoice";
+import GlobalLocationPrompt from "./components/common/GlobalLocationPrompt";
 
 function App() {
   const fetchProfile = useAuthStore((state) => state.fetchProfile);
@@ -51,6 +53,7 @@ function App() {
           error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } }
         }} 
       />
+      <GlobalLocationPrompt />
       <Routes>
         <Route element={<LandingLayout />}>
           <Route path="/" element={<Home />} />
@@ -81,6 +84,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/payment/:bookingId" element={<RoleProtectedRoute allowedRoles={[1,2,5]}><MockPayment /></RoleProtectedRoute>} />
+        <Route path="/print/invoice/:invoiceId" element={<RoleProtectedRoute allowedRoles={[1,2,5]}><PrintableInvoice /></RoleProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

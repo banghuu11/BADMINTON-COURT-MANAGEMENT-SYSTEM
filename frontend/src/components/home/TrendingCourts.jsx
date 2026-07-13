@@ -1,22 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Star, MapPin, Activity, ShieldCheck } from "lucide-react";
+import { ArrowRight, Clock, MapPin, Star } from "lucide-react";
 import { apiFetch } from "../../services/api";
-
-const stylePresets = [
-  {
-    color: "from-slate-800 to-slate-900",
-    accent: "text-primary border-primary/30 bg-primary/20",
-  },
-  {
-    color: "from-blue-900 to-slate-900",
-    accent: "text-blue-500 border-blue-500/30 bg-blue-500/10",
-  },
-  {
-    color: "from-indigo-900 to-slate-900",
-    accent: "text-indigo-500 border-indigo-500/30 bg-indigo-500/10",
-  },
-];
+import fallbackImage from "../../assets/hero.png";
 
 const TrendingCourts = () => {
   const [venues, setVenues] = useState([]);
@@ -37,28 +23,34 @@ const TrendingCourts = () => {
   }, []);
 
   return (
-    <section className="mt-8 space-y-6">
-      <div className="px-5 flex justify-between items-end">
-        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Activity className="text-primary w-6 h-6" /> Sân Đang Hot
-        </h2>
+    <section className="mx-auto max-w-7xl px-5 lg:px-8">
+      <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-bold text-primary">Đề xuất hôm nay</p>
+          <h2 className="text-3xl font-extrabold tracking-normal text-slate-950 dark:text-white">
+            Sân được đặt nhiều
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
+            Chọn nhanh các cơ sở đang hoạt động, có thông tin địa chỉ và lịch mở cửa rõ ràng.
+          </p>
+        </div>
         <Link
           to="/courts"
-          className="text-white/50 font-medium text-sm cursor-pointer hover:text-primary transition-colors"
+          className="inline-flex items-center gap-2 text-sm font-bold text-slate-950 transition-colors hover:text-primary dark:text-white"
         >
-          Xem tất cả
+          Xem tất cả <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
-      <div className="flex overflow-x-auto gap-5 px-5 no-scrollbar pb-4 snap-x">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         {loading ? (
           [...Array(3)].map((_, i) => (
-            <div key={i} className="flex-shrink-0 w-[280px] snap-center bg-[#122843] rounded-2xl p-3 border border-white/5">
-              <div className="skeleton h-44 rounded-xl mb-4"></div>
-              <div className="space-y-2 px-1">
+            <div key={i} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/5">
+              <div className="skeleton mb-4 h-48 rounded-md"></div>
+              <div className="space-y-2">
                 <div className="skeleton h-5 w-3/4 rounded"></div>
                 <div className="skeleton h-3 w-1/2 rounded"></div>
               </div>
-              <div className="flex justify-between items-center px-1 mt-4 pt-4 border-t border-white/5">
+              <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4 dark:border-white/10">
                 <div className="skeleton h-5 w-1/3 rounded"></div>
                 <div className="skeleton h-8 w-20 rounded-lg"></div>
               </div>
@@ -66,55 +58,54 @@ const TrendingCourts = () => {
           ))
         ) : venues.length > 0 ? (
           venues.map((venue, index) => {
-            const style = stylePresets[index % stylePresets.length];
+            const imageUrl = venue.mainimage || fallbackImage;
             return (
               <Link
                 to={`/venue/${venue.venueid}`}
                 key={venue.venueid}
-                className="flex-shrink-0 w-[280px] group cursor-pointer snap-center bg-[#122843] rounded-2xl p-3 border border-white/5 hover:border-white/10 transition-all block"
+                className={`group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 ${
+                  index === 0 ? "md:col-span-2 xl:col-span-1" : ""
+                }`}
               >
-                <div
-                  className={`relative h-44 rounded-xl overflow-hidden mb-4 bg-gradient-to-br ${style.color} flex items-center justify-center`}
-                >
-                  <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary via-transparent to-transparent"></div>
-                  <ShieldCheck
-                    className="w-16 h-16 text-white/10"
-                    strokeWidth={1}
+                <div className="relative h-52 overflow-hidden bg-slate-200">
+                  <img
+                    src={imageUrl}
+                    alt={venue.venuename}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-full text-white font-bold text-xs flex items-center gap-1 shadow-lg">
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                  <div className="absolute right-3 top-3 flex items-center gap-1 rounded bg-white/95 px-2.5 py-1 text-xs font-bold text-slate-950 shadow-sm">
                     {venue.rating || "5.0"}{" "}
-                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                   </div>
-                  <div
-                    className={`absolute bottom-3 left-3 bg-primary/20 backdrop-blur-md border border-primary/30 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${style.accent}`}
-                  >
-                    Sân Tiêu Chuẩn
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <p className="text-xs font-bold uppercase text-primary">
+                      Cơ sở đang hoạt động
+                    </p>
+                    <h3 className="mt-1 line-clamp-2 text-xl font-extrabold text-white">
+                      {venue.venuename}
+                    </h3>
                   </div>
                 </div>
-                <div className="space-y-1 px-1">
-                  <h3 className="text-white font-bold text-lg truncate">
-                    {venue.venuename}
-                  </h3>
-                  <p className="text-white/50 text-xs flex items-center gap-1 truncate">
-                    <MapPin className="w-3 h-3 flex-shrink-0" /> {venue.address}
+                <div className="p-4">
+                  <p className="line-clamp-2 flex min-h-10 items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                    <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" /> {venue.address}
                   </p>
-                </div>
-                <div className="flex justify-between items-center px-1 mt-4 pt-4 border-t border-white/5">
-                  <span className="text-primary font-bold text-lg">
-                    Từ 100k
-                    <span className="text-xs text-white/40 font-normal">
-                      /giờ
+                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/10">
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                      <Clock className="h-4 w-4" />
+                      {venue.opentime?.slice(0, 5) || "06:00"} - {venue.closetime?.slice(0, 5) || "23:00"}
                     </span>
-                  </span>
-                  <button className="bg-white/5 hover:bg-primary hover:text-[#00272C] border border-white/10 hover:border-primary text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
-                    Đặt Ngay
-                  </button>
+                    <span className="rounded bg-slate-950 px-3 py-2 text-xs font-bold text-white transition-colors group-hover:bg-primary group-hover:text-on-primary dark:bg-white dark:text-slate-950">
+                      Xem sân
+                    </span>
+                  </div>
                 </div>
               </Link>
             );
           })
         ) : (
-          <p className="text-white/50 text-sm">
+          <p className="text-sm text-slate-500 dark:text-white/50 md:col-span-2 xl:col-span-3">
             Chưa có cơ sở sân nào hoạt động.
           </p>
         )}
