@@ -12,7 +12,7 @@ const TrendingCourts = () => {
     const fetchTrending = async () => {
       try {
         const data = await apiFetch("/venues/all");
-        setVenues((data.venues || []).slice(0, 5)); // Lấy 5 sân đầu tiên
+        setVenues((data.venues || []).slice(0, 8));
       } catch (err) {
         console.error(err);
       } finally {
@@ -41,9 +41,9 @@ const TrendingCourts = () => {
           Xem tất cả <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         {loading ? (
-          [...Array(3)].map((_, i) => (
+          [...Array(8)].map((_, i) => (
             <div key={i} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/5">
               <div className="skeleton mb-4 h-48 rounded-md"></div>
               <div className="space-y-2">
@@ -57,15 +57,13 @@ const TrendingCourts = () => {
             </div>
           ))
         ) : venues.length > 0 ? (
-          venues.map((venue, index) => {
+          venues.map((venue) => {
             const imageUrl = venue.mainimage || fallbackImage;
             return (
               <Link
                 to={`/venue/${venue.venueid}`}
                 key={venue.venueid}
-                className={`group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 ${
-                  index === 0 ? "md:col-span-2 xl:col-span-1" : ""
-                }`}
+                className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20"
               >
                 <div className="relative h-52 overflow-hidden bg-slate-200">
                   <img
@@ -105,7 +103,7 @@ const TrendingCourts = () => {
             );
           })
         ) : (
-          <p className="text-sm text-slate-500 dark:text-white/50 md:col-span-2 xl:col-span-3">
+          <p className="text-sm text-slate-500 dark:text-white/50 md:col-span-2 xl:col-span-4">
             Chưa có cơ sở sân nào hoạt động.
           </p>
         )}

@@ -19,7 +19,7 @@ const stylePresets = [
 
 const TrendingCourts = () => {
   const { data, loading } = useFetch("/venues/all");
-  const venues = (data?.venues || []).slice(0, 5); // Lấy 5 sân đầu tiên
+  const venues = (data?.venues || []).slice(0, 8);
 
   return (
     <section className="mt-8 space-y-6">

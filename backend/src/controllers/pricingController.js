@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const { ownsCourt, ownsPricing } = require("../utils/ownership");
 
 // [POST] /api/pricing - Tạo cấu hình giá mới
 const createPricing = async (req, res) => {
@@ -20,6 +21,9 @@ const createPricing = async (req, res) => {
   }
 
   try {
+    if (!(await ownsCourt(req.user, courtId))) {
+      return res.status(403).json({ error: "Bạn không có quyền tạo bảng giá cho sân này." });
+    }
     const insertQuery = `
       INSERT INTO TimeSlotPricing (CourtId, SlotName, DayType, StartTime, EndTime, Price, EffectiveFrom, EffectiveTo)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
@@ -69,6 +73,9 @@ const getPricingByCourt = async (req, res) => {
 const deletePricing = async (req, res) => {
   const { id } = req.params;
   try {
+    if (!(await ownsPricing(req.user, id))) {
+      return res.status(403).json({ error: "Bạn không có quyền xóa bảng giá của sân khác." });
+    }
     const deleted = await pool.query(
       "UPDATE TimeSlotPricing SET IsActive = false WHERE PricingId = $1 RETURNING *",
       [id],
@@ -91,16 +98,7 @@ const updatePricing = async (req, res) => {
   const userId = req.user.userId;
 
   try {
-    const ownerCheck = await pool.query(
-      `SELECT v.VenueId FROM Venue v 
-       JOIN Court c ON c.VenueId = v.VenueId 
-       JOIN TimeSlotPricing p ON p.CourtId = c.CourtId
-       JOIN CourtOwnerProfile cop ON v.OwnerId = cop.OwnerId 
-       WHERE p.PricingId = $1 AND cop.UserId = $2`,
-      [pricingId, userId]
-    );
-
-    if (ownerCheck.rows.length === 0) {
+    if (!(await ownsPricing(req.user, pricingId))) {
       return res.status(403).json({ error: "Bạn không có quyền cập nhật giá này!" });
     }
 

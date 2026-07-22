@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { CreditCard, Crown, CheckCircle2, Clock, ShieldAlert, ArrowRight, Loader2, Zap, X, FileText } from "lucide-react";
 import { apiFetch } from "../../services/api";
-import useAuthStore from "../../store/useAuthStore";
 
 const MySubscription = () => {
   const [subscription, setSubscription] = useState(null);
@@ -13,10 +12,9 @@ const MySubscription = () => {
   const [billingCycle, setBillingCycle] = useState("Monthly");
   
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("VNPay");
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("SePay");
 
-  const user = useAuthStore((state) => state.user);
+  const paymentResult = new URLSearchParams(window.location.search).get("payment");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,6 +40,34 @@ const MySubscription = () => {
     if (!selectedPlanId) return alert("Vui lòng chọn một gói dịch vụ!");
     setProcessing(true);
     try {
+      if (paymentMethod === "SePay") {
+        const res = await apiFetch("/plans/sepay/checkout", {
+          method: "POST",
+          body: JSON.stringify({
+            planId: selectedPlanId,
+            billingCycle,
+            autoRenew: false,
+          }),
+        });
+
+        const checkoutForm = document.createElement("form");
+        checkoutForm.method = "POST";
+        checkoutForm.action = res.checkoutUrl;
+
+        Object.entries(res.fields || {}).forEach(([name, value]) => {
+          if (value === null || value === undefined) return;
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = name;
+          input.value = String(value);
+          checkoutForm.appendChild(input);
+        });
+
+        document.body.appendChild(checkoutForm);
+        checkoutForm.submit();
+        return;
+      }
+
       if (paymentMethod === "Momo") {
         // Call backend to create MoMo QR
         const res = await apiFetch("/plans/create-momo-qr", {
@@ -56,21 +82,7 @@ const MySubscription = () => {
           return; // Stop here, redirecting
         }
       }
-
-      // If VNPay or fallback (Mock)
-      await apiFetch("/plans/subscribe", {
-        method: "POST",
-        body: JSON.stringify({
-          planId: selectedPlanId,
-          billingCycle: billingCycle,
-          paymentMethod: paymentMethod,
-          autoRenew: false
-        })
-      });
-      setPaymentSuccess(true);
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
+      throw new Error("Phương thức thanh toán chưa được hỗ trợ.");
     } catch (err) {
       alert(err.message || "Lỗi thanh toán gói dịch vụ.");
     } finally {
@@ -95,14 +107,30 @@ const MySubscription = () => {
   return (
     <div className="max-w-5xl mx-auto px-5 py-8 animate-fade-in pb-24">
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
           <Crown className="w-8 h-8 text-amber-500" /> Quản lý Gói dịch vụ
         </h1>
-        <p className="text-slate-500 mt-2">Theo dõi và gia hạn gói dịch vụ kinh doanh của bạn trên hệ thống.</p>
+        <p className="text-slate-500 dark:text-slate-400 mt-2">Theo dõi và gia hạn gói dịch vụ kinh doanh của bạn trên hệ thống.</p>
       </div>
 
+      {paymentResult && (
+        <div className={`mb-6 rounded-2xl border p-4 text-sm font-semibold ${
+          paymentResult === "success"
+            ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300"
+            : paymentResult === "cancel"
+              ? "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"
+              : "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+        }`}>
+          {paymentResult === "success"
+            ? "Đã quay lại từ SePay. Hệ thống sẽ kích hoạt gói sau khi nhận xác nhận thanh toán từ SePay; vui lòng tải lại trang sau vài giây."
+            : paymentResult === "cancel"
+              ? "Bạn đã hủy giao dịch SePay. Gói hiện tại không bị thay đổi."
+              : "Giao dịch SePay chưa hoàn tất. Vui lòng thử lại hoặc chọn phương thức khác."}
+        </div>
+      )}
+
       {/* Tình trạng gói hiện tại */}
-      <div className={`p-6 rounded-3xl border mb-10 shadow-sm relative overflow-hidden ${isActive ? "bg-gradient-to-br from-[#00272C] to-[#1a2c42] border-[#00272C]" : "bg-white border-red-200"}`}>
+      <div className={`p-6 rounded-3xl border mb-10 shadow-sm relative overflow-hidden ${isActive ? "bg-gradient-to-br from-[#00272C] to-[#1a2c42] border-[#00272C]" : "bg-white border-red-200 dark:bg-white/5 dark:border-red-500/30"}`}>
         {isActive && <div className="absolute -right-4 -bottom-4 opacity-10"><Crown className="w-48 h-48 text-white" /></div>}
         
         <div className="relative z-10 flex flex-col md:flex-row justify-between gap-6 items-start md:items-center">
@@ -111,7 +139,7 @@ const MySubscription = () => {
               {isActive ? "Gói Đang Kích Hoạt" : isExpired ? "Gói Đã Hết Hạn" : "Chưa Đăng Ký Gói Nào"}
             </h2>
             <div className="flex items-center gap-4">
-              <span className={`text-4xl font-black ${isActive ? "text-white" : "text-slate-900"}`}>
+              <span className={`text-4xl font-black ${isActive ? "text-white" : "text-slate-900 dark:text-white"}`}>
                 {subscription ? subscription.planname : "Gói Mặc Định (Free)"}
               </span>
               {isActive && (
@@ -147,8 +175,8 @@ const MySubscription = () => {
       {/* Bảng giá */}
       <div id="plans" className="scroll-mt-24">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-extrabold text-slate-900">Bảng giá Gói Dịch Vụ</h2>
-          <p className="text-slate-500 mt-2">Chọn chu kỳ thanh toán để được nhận ưu đãi tốt nhất</p>
+          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Bảng giá Gói Dịch Vụ</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">Chọn chu kỳ thanh toán để được nhận ưu đãi tốt nhất</p>
           
           <div className="inline-flex bg-slate-100 p-1 rounded-full mt-6">
             <button 
@@ -175,15 +203,15 @@ const MySubscription = () => {
               <div 
                 key={plan.planid}
                 onClick={() => setSelectedPlanId(plan.planid)}
-                className={`cursor-pointer bg-white rounded-3xl p-6 border-2 transition-all relative overflow-hidden ${isSelected ? "border-[#00272C] shadow-xl shadow-[#00272C]/10 scale-105" : "border-slate-100 hover:border-slate-300 hover:shadow-md"}`}
+                className={`cursor-pointer bg-white rounded-3xl p-6 border-2 transition-all relative overflow-hidden dark:bg-white/5 ${isSelected ? "border-[#00272C] dark:border-primary shadow-xl shadow-[#00272C]/10 scale-105" : "border-slate-100 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-md"}`}
               >
                 {isSelected && <div className="absolute top-0 right-0 bg-[#00272C] text-primary text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-bl-xl">Đang chọn</div>}
                 
-                <h3 className="text-xl font-extrabold text-slate-900 mb-2">{plan.planname}</h3>
+                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">{plan.planname}</h3>
                 <p className="text-slate-500 text-sm mb-4 h-10">{plan.description || "Phù hợp cho cơ sở kinh doanh " + plan.planname.toLowerCase()}</p>
                 
                 <div className="mb-6 flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-slate-900">{price.toLocaleString('vi-VN')}đ</span>
+                  <span className="text-3xl font-black text-slate-900 dark:text-white">{price.toLocaleString('vi-VN')}đ</span>
                   <span className="text-sm font-bold text-slate-500">/{billingCycle === "Yearly" ? "Năm" : "Tháng"}</span>
                 </div>
 
@@ -221,7 +249,7 @@ const MySubscription = () => {
         </div>
       </div>
 
-      {/* Checkout Mock */}
+      {/* Checkout */}
       {selectedPlanId && (
         <div className="mt-12 bg-[#00272C] p-6 md:p-8 rounded-3xl border border-[#1a2c42] shadow-2xl text-white flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary rounded-full mix-blend-multiply filter blur-3xl opacity-10 pointer-events-none"></div>
@@ -231,7 +259,7 @@ const MySubscription = () => {
               <CreditCard className="w-6 h-6 text-primary" /> Thanh Toán & Kích Hoạt
             </h3>
             <p className="text-slate-400 text-sm max-w-md">
-              Bạn đang chọn đăng ký Gói dịch vụ. Bằng việc nhấn thanh toán, hệ thống sẽ thực hiện giao dịch Mock (giả lập) qua VNPay và kích hoạt tự động.
+              Bạn đang chọn đăng ký Gói dịch vụ. Gói mới chỉ được kích hoạt sau khi SePay xác nhận giao dịch thành công.
             </p>
           </div>
           <button 
@@ -246,14 +274,14 @@ const MySubscription = () => {
       {/* Lịch sử giao dịch */}
       {invoices.length > 0 && (
         <div className="mt-16">
-          <h2 className="text-2xl font-extrabold text-slate-900 mb-6 flex items-center gap-2">
+          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
             <FileText className="w-6 h-6 text-primary" /> Lịch sử Thanh Toán Gói
           </h2>
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden dark:bg-white/5 dark:border-white/10">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-sm">
+                  <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
                     <th className="py-4 px-6 font-bold">Mã Giao dịch</th>
                     <th className="py-4 px-6 font-bold">Gói Dịch vụ</th>
                     <th className="py-4 px-6 font-bold">Chu kỳ</th>
@@ -264,11 +292,11 @@ const MySubscription = () => {
                 </thead>
                 <tbody>
                   {invoices.map((inv) => (
-                    <tr key={inv.invoiceid} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="py-4 px-6 font-bold text-slate-900 uppercase text-xs">{inv.invoicecode}</td>
+                    <tr key={inv.invoiceid} className="border-b border-slate-100 hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5">
+                      <td className="py-4 px-6 font-bold text-slate-900 dark:text-white uppercase text-xs">{inv.invoicecode}</td>
                       <td className="py-4 px-6 font-bold text-[#00272C] uppercase text-xs">{inv.planname}</td>
                       <td className="py-4 px-6 text-slate-600 font-medium text-sm">{inv.billingcycle === 'Yearly' ? 'Năm' : 'Tháng'}</td>
-                      <td className="py-4 px-6 font-bold text-slate-900">{Number(inv.amount).toLocaleString('vi-VN')}đ</td>
+                      <td className="py-4 px-6 font-bold text-slate-900 dark:text-white">{Number(inv.amount).toLocaleString('vi-VN')}đ</td>
                       <td className="py-4 px-6 text-slate-600 font-medium text-sm">{inv.paymentmethod}</td>
                       <td className="py-4 px-6 text-slate-500 text-sm">{new Date(inv.paidat).toLocaleString('vi-VN')}</td>
                     </tr>
@@ -283,52 +311,40 @@ const MySubscription = () => {
       {/* Checkout Modal */}
       {showCheckoutModal && (
         <div className="fixed inset-0 bg-[#00272C]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl">
-            {paymentSuccess ? (
-              <div className="p-8 text-center animate-scale-up">
-                <div className="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-10 h-10" />
-                </div>
-                <h3 className="text-2xl font-black text-slate-900 mb-2">Thanh toán thành công!</h3>
-                <p className="text-slate-500 mb-6">Gói dịch vụ của bạn đã được kích hoạt.</p>
-                <div className="flex justify-center">
-                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                </div>
-              </div>
-            ) : (
-              <div className="p-6">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-transparent dark:border-white/10">
+            <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-bold text-slate-900">Thanh toán Gói</h3>
-                  <button onClick={() => setShowCheckoutModal(false)} className="text-slate-400 hover:bg-slate-100 p-2 rounded-full transition-colors">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">Thanh toán Gói</h3>
+                  <button onClick={() => setShowCheckoutModal(false)} className="text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 p-2 rounded-full transition-colors">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
                 
                 <div className="space-y-4 mb-8">
                   <div 
-                    onClick={() => setPaymentMethod("VNPay")}
-                    className={`cursor-pointer p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${paymentMethod === "VNPay" ? "border-blue-500 bg-blue-50" : "border-slate-100 hover:border-slate-300"}`}
+                    onClick={() => setPaymentMethod("SePay")}
+                    className={`cursor-pointer p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${paymentMethod === "SePay" ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10" : "border-slate-100 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/30"}`}
                   >
                     <div className="w-12 h-12 bg-white border border-slate-100 rounded-lg flex items-center justify-center shadow-sm">
-                      <span className="text-blue-600 font-black text-sm">VNPAY</span>
+                      <span className="text-blue-600 font-black text-sm">SEPAY</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-bold text-slate-900">Thanh toán qua VNPAY</h4>
-                      <p className="text-xs text-slate-500">Quét mã QR qua ứng dụng ngân hàng</p>
+                      <h4 className="font-bold text-slate-900 dark:text-white">Thanh toán qua SePay</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Chuyển khoản ngân hàng qua SePay Sandbox</p>
                     </div>
-                    {paymentMethod === "VNPay" && <CheckCircle2 className="w-5 h-5 text-blue-500" />}
+                    {paymentMethod === "SePay" && <CheckCircle2 className="w-5 h-5 text-blue-500" />}
                   </div>
 
                   <div 
                     onClick={() => setPaymentMethod("Momo")}
-                    className={`cursor-pointer p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${paymentMethod === "Momo" ? "border-pink-500 bg-pink-50" : "border-slate-100 hover:border-slate-300"}`}
+                    className={`cursor-pointer p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${paymentMethod === "Momo" ? "border-pink-500 bg-pink-50 dark:bg-pink-500/10" : "border-slate-100 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/30"}`}
                   >
                     <div className="w-12 h-12 bg-[#a50064] rounded-lg flex items-center justify-center shadow-sm">
                       <span className="text-white font-bold text-xs">MOMO</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-bold text-slate-900">Thanh toán qua MoMo</h4>
-                      <p className="text-xs text-slate-500">Ví điện tử MoMo</p>
+                      <h4 className="font-bold text-slate-900 dark:text-white">Thanh toán qua MoMo</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Ví điện tử MoMo</p>
                     </div>
                     {paymentMethod === "Momo" && <CheckCircle2 className="w-5 h-5 text-pink-500" />}
                   </div>
@@ -348,9 +364,8 @@ const MySubscription = () => {
                   {processing ? <><Loader2 className="w-5 h-5 animate-spin" /> Đang xử lý...</> : "Xác Nhận & Thanh Toán"}
                 </button>
               </div>
-            )}
+            </div>
           </div>
-        </div>
       )}
     </div>
   );

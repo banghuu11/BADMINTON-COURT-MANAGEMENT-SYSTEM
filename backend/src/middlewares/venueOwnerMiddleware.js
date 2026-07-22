@@ -7,7 +7,7 @@ const isOwnerOfVenue = async (req, res, next) => {
 
   const roleId = Number(req.user.roleId);
   const userId = req.user.userId;
-  const venueId = Number(req.params.venueId);
+  const venueId = Number(req.params.venueId || req.body?.venueId);
 
   if (isNaN(venueId)) {
     return res.status(400).json({ error: "venueId không hợp lệ!" });

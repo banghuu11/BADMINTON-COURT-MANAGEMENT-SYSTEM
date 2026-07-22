@@ -14,7 +14,7 @@ const TimeSlotSelector = ({
   return (
     <div>
       <h3 className="flex items-center gap-2 font-bold text-slate-950 dark:text-white mb-3">
-        <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-black">
+        <span className="bg-primary text-on-primary w-6 h-6 rounded-full flex items-center justify-center text-xs font-black">
           1
         </span>{" "}
         Chọn ngày & giờ chơi
@@ -26,12 +26,12 @@ const TimeSlotSelector = ({
             type="date"
             value={playDate}
             onChange={(e) => onDateChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-primary text-white [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-80"
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-slate-950 focus:border-primary focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:[&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-70"
           />
         </div>
 
         <div>
-          <h4 className="text-sm font-bold text-slate-300 mb-2">
+          <h4 className="mb-2 text-sm font-bold text-slate-700 dark:text-slate-300">
             Chọn giờ bắt đầu:
           </h4>
           {pricingSlots.length > 0 ? (
@@ -49,10 +49,10 @@ const TimeSlotSelector = ({
                     onClick={() => onTimeSlotChange(pSlot)}
                     className={`flex flex-col items-center justify-center w-24 min-w-24 min-h-[74px] rounded-xl border px-2 py-2 text-sm transition-all ${
                       isBooked
-                        ? "bg-white/5 border-white/5 text-slate-500 cursor-not-allowed opacity-40"
+                        ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 opacity-70 dark:border-white/5 dark:bg-white/5 dark:text-slate-500 dark:opacity-40"
                         : isSelected
-                          ? "bg-primary border-primary text-white shadow-[0_0_15px_rgba(16,185,129,0.45)] font-bold scale-[1.02]"
-                          : "bg-white/5 border-white/10 text-slate-300 hover:border-primary hover:text-primary hover:bg-white/10"
+                          ? "scale-[1.02] border-primary bg-primary text-on-primary font-bold shadow-[0_0_15px_rgba(16,185,129,0.45)]"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-primary hover:bg-emerald-50 hover:text-emerald-800 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-primary"
                     }`}
                   >
                     <span className="font-bold">
@@ -66,8 +66,8 @@ const TimeSlotSelector = ({
                         isBooked
                           ? "text-red-400"
                           : isSelected
-                            ? "text-white/90"
-                            : "text-slate-400"
+                            ? "text-on-primary/80"
+                            : "text-slate-500 dark:text-slate-400"
                       }`}
                     >
                       {isBooked
@@ -79,7 +79,7 @@ const TimeSlotSelector = ({
               })}
             </div>
           ) : (
-            <div className="bg-white/5 text-slate-400 p-4 rounded-xl text-sm text-center border border-white/5">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500 dark:border-white/5 dark:bg-white/5 dark:text-slate-400">
               Không có giờ bắt đầu phù hợp với thời lượng đã chọn.
             </div>
           )}
@@ -87,7 +87,7 @@ const TimeSlotSelector = ({
 
         {durationOptions.length > 0 && (
           <div>
-            <h4 className="text-sm font-bold text-slate-300 mb-2">
+            <h4 className="mb-2 text-sm font-bold text-slate-700 dark:text-slate-300">
               Thời lượng chơi:
             </h4>
             <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
@@ -101,8 +101,8 @@ const TimeSlotSelector = ({
                     onClick={() => onDurationChange?.(option.minutes)}
                     className={`flex items-center justify-center gap-2 min-w-24 min-h-10 rounded-xl border px-2 text-xs font-bold transition-all ${
                       isSelected
-                        ? "bg-primary border-primary text-white shadow-[0_0_15px_rgba(16,185,129,0.35)]"
-                        : "bg-white/5 border-white/10 text-slate-300 hover:border-primary hover:text-primary hover:bg-white/10"
+                        ? "border-primary bg-primary text-on-primary shadow-[0_0_15px_rgba(16,185,129,0.35)]"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-primary hover:bg-emerald-50 hover:text-emerald-800 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-primary"
                     }`}
                   >
                     {option.label}

@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const { ownsVenue, ownsService } = require("../utils/ownership");
 
 // [GET] /api/services/venue/:venueId - Lấy danh sách dịch vụ của cơ sở
 const getServicesByVenue = async (req, res) => {
@@ -46,13 +47,7 @@ const createService = async (req, res) => {
   }
 
   try {
-    // (Tùy chọn) Kiểm tra xem user có phải chủ của Venue này không
-    const checkOwner = await pool.query(
-      "SELECT v.VenueId FROM Venue v JOIN CourtOwnerProfile cop ON v.OwnerId = cop.OwnerId WHERE v.VenueId = $1 AND cop.UserId = $2",
-      [venueId, userId],
-    );
-
-    if (checkOwner.rows.length === 0) {
+    if (!(await ownsVenue(req.user, venueId))) {
       return res
         .status(403)
         .json({ error: "Bạn không có quyền thêm sản phẩm vào cơ sở này!" });
@@ -97,6 +92,9 @@ const updateService = async (req, res) => {
     req.body;
 
   try {
+    if (!(await ownsService(req.user, serviceId))) {
+      return res.status(403).json({ error: "Bạn không có quyền sửa dịch vụ của cơ sở khác." });
+    }
     const updateQuery = `
       UPDATE ServiceItem 
       SET ServiceName = COALESCE($1, ServiceName), 
@@ -136,6 +134,9 @@ const updateService = async (req, res) => {
 const deleteService = async (req, res) => {
   const { serviceId } = req.params;
   try {
+    if (!(await ownsService(req.user, serviceId))) {
+      return res.status(403).json({ error: "Bạn không có quyền xóa dịch vụ của cơ sở khác." });
+    }
     // Thực hiện Xóa mềm (Soft Delete) bằng cách set IsActive = FALSE thay vì DROP rủi ro
     const deleted = await pool.query(
       "UPDATE ServiceItem SET IsActive = FALSE WHERE ServiceId = $1 RETURNING *",

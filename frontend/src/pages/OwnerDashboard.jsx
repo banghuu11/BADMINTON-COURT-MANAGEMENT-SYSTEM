@@ -71,20 +71,20 @@ const OwnerDashboard = () => {
       {/* Header & Filter */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Thống kê Doanh thu
           </h1>
-          <p className="text-slate-500 mt-1 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
             Theo dõi hiệu quả kinh doanh của các cơ sở sân
           </p>
         </div>
-        <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm dark:bg-white/5 dark:border-white/10">
           <div className="flex items-center gap-2 px-3 border-r border-slate-100">
             <Calendar className="w-4 h-4 text-slate-400" />
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-transparent font-bold text-slate-900 focus:outline-none"
+              className="bg-transparent font-bold text-slate-900 dark:text-white focus:outline-none"
             >
               {[...Array(12).keys()].map((i) => (
                 <option key={i + 1} value={i + 1}>
@@ -96,7 +96,7 @@ const OwnerDashboard = () => {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="bg-transparent font-bold text-slate-900 focus:outline-none px-3"
+            className="bg-transparent font-bold text-slate-900 dark:text-white focus:outline-none px-3"
           >
             {[
               currentDate.getFullYear() - 1,
@@ -125,54 +125,54 @@ const OwnerDashboard = () => {
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center">
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center dark:bg-white/5 dark:border-white/10">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
             </div>
-            <p className="text-slate-500 text-sm font-bold uppercase tracking-wider">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider">
               Tiền thuê sân
             </p>
           </div>
-          <p className="text-2xl font-extrabold text-slate-900">
+          <p className="text-2xl font-extrabold text-slate-900 dark:text-white">
             {Number(summary.court_revenue).toLocaleString()}đ
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center">
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center dark:bg-white/5 dark:border-white/10">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <ShoppingBag className="w-4 h-4" />
             </div>
-            <p className="text-slate-500 text-sm font-bold uppercase tracking-wider">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider">
               Bán dịch vụ
             </p>
           </div>
-          <p className="text-2xl font-extrabold text-slate-900">
+          <p className="text-2xl font-extrabold text-slate-900 dark:text-white">
             {Number(summary.service_revenue).toLocaleString()}đ
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center">
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center dark:bg-white/5 dark:border-white/10">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
               <CreditCard className="w-4 h-4" />
             </div>
-            <p className="text-slate-500 text-sm font-bold uppercase tracking-wider">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider">
               Tổng số hóa đơn
             </p>
           </div>
-          <p className="text-2xl font-extrabold text-slate-900">
+          <p className="text-2xl font-extrabold text-slate-900 dark:text-white">
             {summary.total_invoices}
           </p>
         </div>
       </div>
 
       {/* Breakdown theo Cơ sở */}
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden dark:bg-white/5 dark:border-white/10">
         <div className="p-6 border-b border-slate-100 flex items-center gap-2">
           <MapPin className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-bold text-slate-900">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
             Doanh thu theo từng cơ sở
           </h2>
         </div>
@@ -181,7 +181,7 @@ const OwnerDashboard = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 text-sm text-slate-500 border-b border-slate-200">
+                <tr className="bg-slate-50 text-sm text-slate-500 border-b border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10">
                   <th className="p-4 font-bold">Mã cơ sở</th>
                   <th className="p-4 font-bold">Tên cơ sở kinh doanh</th>
                   <th className="p-4 font-bold text-right">Doanh thu (VNĐ)</th>
@@ -191,12 +191,12 @@ const OwnerDashboard = () => {
                 {venues.map((v) => (
                   <tr
                     key={v.venueid}
-                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors dark:border-white/10 dark:hover:bg-white/5"
                   >
-                    <td className="p-4 font-medium text-slate-500">
+                    <td className="p-4 font-medium text-slate-500 dark:text-slate-400">
                       #{v.venueid}
                     </td>
-                    <td className="p-4 font-bold text-slate-900">
+                    <td className="p-4 font-bold text-slate-900 dark:text-white">
                       {v.venuename}
                     </td>
                     <td className="p-4 text-right font-extrabold text-primary text-lg">

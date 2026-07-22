@@ -1,6 +1,13 @@
 const express = require("express");
 const { getPlans } = require("../controllers/planController");
-const { getMySubscription, getMyInvoices, subscribePlan, createMomoQr } = require("../controllers/subscriptionController");
+const {
+  getMySubscription,
+  getMyInvoices,
+  subscribePlan,
+  createMomoQr,
+  createSePaySubscriptionCheckout,
+  handleSePayIpn,
+} = require("../controllers/subscriptionController");
 const { authenticateToken } = require("../middlewares/authMiddleware");
 const { requireRole } = require("../middlewares/roleMiddleware");
 
@@ -20,5 +27,8 @@ router.post("/subscribe", authenticateToken, requireRole([2]), subscribePlan);
 
 // Tạo mã QR thanh toán MoMo
 router.post("/create-momo-qr", authenticateToken, requireRole([2]), createMomoQr);
+
+router.post("/sepay/checkout", authenticateToken, requireRole([2]), createSePaySubscriptionCheckout);
+router.post("/sepay/ipn", handleSePayIpn);
 
 module.exports = router;

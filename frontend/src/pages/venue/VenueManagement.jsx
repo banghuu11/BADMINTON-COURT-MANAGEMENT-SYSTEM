@@ -26,10 +26,10 @@ const VenueManagement = () => {
     <div className="max-w-7xl mx-auto px-5 py-8 animate-fade-in pb-24">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight">
             Quản lý Cơ sở
           </h1>
-          <p className="text-slate-400 mt-1 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
             Quản lý các chi nhánh sân cầu lông của bạn.
           </p>
         </div>

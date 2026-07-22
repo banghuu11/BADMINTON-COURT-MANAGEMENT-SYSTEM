@@ -36,8 +36,9 @@ const VenueImageModal = ({ isOpen, onClose, venue }) => {
               <span className="font-medium text-slate-600">
                 {deleteMutation.isPending
                   ? "Đang tải lên..."
-                  : "Nhấn để chọn ảnh tải lên"}
+                  : "Nhấn để cập nhật banner cơ sở"}
               </span>
+              <span className="text-xs text-slate-400">Ảnh mới sẽ hiển thị tại trang chủ và trang chi tiết.</span>
             </div>
             <input
               type="file"

@@ -6,7 +6,7 @@ export const useMatches = () => {
 
   // Lấy danh sách các trận giao lưu đang mở
   const { data: matches = [], isLoading } = useQuery({
-    queryKey: ["openMatches"],
+    queryKey: ["openMatches", "all"],
     queryFn: async () => {
       const data = await apiFetch("/booking/matches");
       return data.matches || [];
@@ -90,5 +90,20 @@ export const useCourtsByVenue = (venueId: string) => {
       }));
     },
     enabled: !!venueId, // Chỉ gọi API khi đã có venueId
+  });
+};
+
+export const useCourtSuggestions = (query: string) => {
+  return useQuery({
+    queryKey: ["courtSuggestions", query],
+    queryFn: async () => {
+      const data = await apiFetch(`/courts/suggestions?q=${encodeURIComponent(query)}`);
+      return (data.courts || []).map((court: any) => ({
+        ...court,
+        courtId: court.courtid ?? court.CourtId,
+        courtName: court.courtname ?? court.CourtName,
+        venueName: court.venuename ?? court.VenueName,
+      }));
+    },
   });
 };

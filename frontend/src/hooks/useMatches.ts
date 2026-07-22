@@ -9,9 +9,9 @@ export const useMatches = () => {
     isLoading: loading,
     refetch: fetchMatches,
   } = useQuery({
-    queryKey: ["openMatches"],
+    queryKey: ["openMatches", "home"],
     queryFn: async () => {
-      const data = await apiFetch("/booking/matches");
+      const data = await apiFetch("/booking/matches?limit=6");
       return data.matches || [];
     },
   });

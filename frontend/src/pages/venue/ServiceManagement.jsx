@@ -35,7 +35,7 @@ const ServiceManagement = () => {
           <select
             value={selectedVenueId}
             onChange={(e) => setSelectedVenueId(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:outline-none focus:border-primary shadow-sm"
+            className="bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:outline-none focus:border-primary shadow-sm dark:bg-white/5 dark:border-white/10 dark:text-white"
           >
             {venues.map((v) => (
               <option key={v.venueid} value={v.venueid}>
@@ -55,7 +55,7 @@ const ServiceManagement = () => {
       </div>
 
       {/* Danh sách Dịch vụ */}
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden dark:bg-white/5 dark:border-white/10">
         {isLoading ? (
           <div className="p-8 text-center text-slate-500">
             Đang tải danh sách dịch vụ...
@@ -64,7 +64,7 @@ const ServiceManagement = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
+                <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500 dark:bg-white/5 dark:border-white/10 dark:text-slate-400">
                   <th className="p-4 font-bold">Tên sản phẩm</th>
                   <th className="p-4 font-bold">Đơn giá</th>
                   <th className="p-4 font-bold">Tồn kho</th>
@@ -77,19 +77,19 @@ const ServiceManagement = () => {
                 {services.map((service) => (
                   <tr
                     key={service.serviceid}
-                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors dark:border-white/10 dark:hover:bg-white/5"
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
                           <Package className="w-5 h-5" />
                         </div>
-                        <span className="font-bold text-slate-900">
+                        <span className="font-bold text-slate-900 dark:text-white">
                           {service.servicename}
                         </span>
                       </div>
                     </td>
-                    <td className="p-4 font-extrabold text-slate-900">
+                    <td className="p-4 font-extrabold text-slate-900 dark:text-white">
                       {Number(service.unitprice).toLocaleString()}đ
                     </td>
                     <td className="p-4">

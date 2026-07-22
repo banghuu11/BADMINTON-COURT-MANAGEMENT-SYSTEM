@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const { ownsVenue, ownsPromotion } = require("../utils/ownership");
 
 // [GET] /api/promotions/venue/:venueId - Lấy danh sách khuyến mãi của cơ sở
 const getPromotionsByVenue = async (req, res) => {
@@ -47,6 +48,9 @@ const createPromotion = async (req, res) => {
   }
 
   try {
+    if (!(await ownsVenue(req.user, venueId))) {
+      return res.status(403).json({ error: "Bạn không có quyền tạo khuyến mãi cho cơ sở này." });
+    }
     const insertQuery = `
       INSERT INTO Promotion (VenueId, PromotionName, Description, DiscountType, DiscountValue, MinOrderAmount, MaxDiscount, StartDate, EndDate, UsageLimit)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *
@@ -95,6 +99,9 @@ const updatePromotion = async (req, res) => {
   } = req.body;
 
   try {
+    if (!(await ownsPromotion(req.user, id))) {
+      return res.status(403).json({ error: "Bạn không có quyền sửa khuyến mãi của cơ sở khác." });
+    }
     const updateQuery = `
       UPDATE Promotion 
       SET PromotionName = COALESCE($1, PromotionName), Description = COALESCE($2, Description),
@@ -130,6 +137,9 @@ const updatePromotion = async (req, res) => {
 const deletePromotion = async (req, res) => {
   const { id } = req.params;
   try {
+    if (!(await ownsPromotion(req.user, id))) {
+      return res.status(403).json({ error: "Bạn không có quyền xóa khuyến mãi của cơ sở khác." });
+    }
     const deleted = await pool.query(
       "UPDATE Promotion SET IsActive = FALSE WHERE PromotionId = $1 RETURNING *",
       [id],

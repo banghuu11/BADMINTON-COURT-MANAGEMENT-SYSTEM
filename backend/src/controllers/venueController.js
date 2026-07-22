@@ -143,25 +143,26 @@ const uploadVenueImage = async (req, res) => {
   // Đường dẫn tĩnh truy cập ảnh
   const imageUrl = `http://localhost:8080/uploads/${req.file.filename}`;
 
+  const client = await pool.connect();
   try {
-    // Nếu là ảnh đầu tiên, set nó làm Main (Ảnh đại diện)
-    const checkMain = await pool.query(
-      "SELECT * FROM VenueImage WHERE VenueId = $1 AND IsMain = TRUE",
-      [venueId],
-    );
-    const isMain = checkMain.rows.length === 0;
-
+    // Ảnh vừa tải lên là banner mới của cơ sở.
+    await client.query("BEGIN");
+    await client.query("UPDATE VenueImage SET IsMain = FALSE WHERE VenueId = $1", [venueId]);
     const insertQuery = `INSERT INTO VenueImage (VenueId, ImageUrl, IsMain) VALUES ($1, $2, $3) RETURNING *`;
-    const newImage = await pool.query(insertQuery, [venueId, imageUrl, isMain]);
+    const newImage = await client.query(insertQuery, [venueId, imageUrl, true]);
+    await client.query("COMMIT");
 
     res
       .status(201)
-      .json({ message: "Upload ảnh thành công!", image: newImage.rows[0] });
+      .json({ message: "Đã cập nhật banner cơ sở!", image: newImage.rows[0] });
   } catch (error) {
+    await client.query("ROLLBACK");
     console.error("Lỗi uploadVenueImage:", error);
     res
       .status(500)
       .json({ error: "Lỗi server khi lưu ảnh.", details: error.message });
+  } finally {
+    client.release();
   }
 };
 

@@ -84,6 +84,27 @@ const getCourtsByVenue = async (req, res) => {
   }
 };
 
+// [GET] /api/courts/suggestions?q=...
+// Dùng cho các ô tìm sân có gợi ý, trả về cả tên cơ sở để phân biệt sân trùng tên.
+const getCourtSuggestions = async (req, res) => {
+  const query = String(req.query.q || "").trim();
+  try {
+    const result = await pool.query(
+      `SELECT c.CourtId, c.CourtName, c.VenueId, v.VenueName, v.Address
+       FROM Court c
+       JOIN Venue v ON v.VenueId = c.VenueId
+       WHERE c.CourtName ILIKE $1 OR v.VenueName ILIKE $1
+       ORDER BY v.VenueName, c.CourtName
+       LIMIT 20`,
+      [`%${query}%`],
+    );
+    res.json({ courts: result.rows });
+  } catch (error) {
+    console.error("Lỗi lấy gợi ý sân:", error);
+    res.status(500).json({ error: "Không thể lấy gợi ý sân." });
+  }
+};
+
 // [GET] /api/courts/:id - Lấy chi tiết sân theo ID
 const getCourtById = async (req, res) => {
   const { id } = req.params;
@@ -165,5 +186,4 @@ const deleteCourt = async (req, res) => {
   }
 };
 
-module.exports = { createCourt, getCourtsByVenue, getCourtById, updateCourt, deleteCourt };
-
+module.exports = { createCourt, getCourtsByVenue, getCourtSuggestions, getCourtById, updateCourt, deleteCourt };

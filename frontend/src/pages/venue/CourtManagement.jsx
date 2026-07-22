@@ -23,10 +23,10 @@ const CourtManagement = () => {
     <div className="max-w-7xl mx-auto px-5 py-8 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight">
             Quản lý Sân
           </h1>
-          <p className="text-slate-400 mt-1 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
             Thêm sân mới vào cơ sở của bạn.
           </p>
         </div>
@@ -34,7 +34,7 @@ const CourtManagement = () => {
           <select
             value={selectedVenueId}
             onChange={(e) => setSelectedVenueId(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:outline-none shadow-sm"
+            className="bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:outline-none shadow-sm dark:bg-white/5 dark:border-white/10 dark:text-white"
           >
             {venues.map((v) => (
               <option key={v.venueid} value={v.venueid}>
@@ -52,13 +52,13 @@ const CourtManagement = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden dark:bg-white/5 dark:border-white/10">
         {isLoading ? (
           <div className="p-8 text-center text-slate-500">Đang tải...</div>
         ) : courts.length > 0 ? (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
+              <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500 dark:bg-white/5 dark:border-white/10 dark:text-slate-400">
                 <th className="p-4 font-bold">Tên Sân</th>
                 <th className="p-4 font-bold">Mã Sân</th>
                 <th className="p-4 font-bold">Mặt Thảm</th>
@@ -70,16 +70,16 @@ const CourtManagement = () => {
               {courts.map((c) => (
                 <tr
                   key={c.courtid}
-                  className="border-b border-slate-100 hover:bg-slate-50"
+                  className="border-b border-slate-100 hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5"
                 >
-                  <td className="p-4 font-bold text-slate-900">
+                  <td className="p-4 font-bold text-slate-900 dark:text-white">
                     <Dumbbell className="w-4 h-4 text-primary inline mr-2" />
                     {c.courtname}
                   </td>
-                  <td className="p-4 text-slate-500 font-medium">
+                  <td className="p-4 text-slate-500 dark:text-slate-400 font-medium">
                     {c.courtcode || "-"}
                   </td>
-                  <td className="p-4 text-slate-500 text-sm">
+                  <td className="p-4 text-slate-500 dark:text-slate-400 text-sm">
                     {c.surfacetype}{" "}
                     {c.isindoor ? "(Trong nhà)" : "(Ngoài trời)"}
                   </td>

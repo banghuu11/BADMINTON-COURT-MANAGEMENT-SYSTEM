@@ -675,15 +675,21 @@ const addServiceToBooking = async (req, res) => {
 // [GET] /api/booking/matches - Lấy danh sách đang tìm người giao lưu
 const getOpenMatches = async (req, res) => {
   try {
+    const requestedLimit = Number.parseInt(req.query.limit, 10);
+    const hasLimit = Number.isFinite(requestedLimit) && requestedLimit > 0;
     const query = `
-      SELECT w.WaitId, w.PlayDate, w.StartTime, w.EndTime,
+      SELECT w.WaitId, w.PlayDate, w.StartTime, w.EndTime, w.RequestedAt,
              CASE
                WHEN match_booking.Note = 'Đánh đơn' THEN 'singles'
                WHEN match_booking.Note = 'Tìm đồng đội đánh đôi' THEN 'doubles'
                ELSE 'doubles'
              END AS MatchType,
              match_booking.PositionIndex AS CreatorPositionIndex,
-             u.FullName, u.AvatarUrl, u.SkillLevel, c.CourtId, c.CourtName, v.VenueName, v.Address
+             u.FullName, u.AvatarUrl, u.SkillLevel, c.CourtId, c.CourtName,
+             v.VenueName, v.Address, v.District,
+             (SELECT vi.ImageUrl FROM VenueImage vi
+              WHERE vi.VenueId = v.VenueId
+              ORDER BY vi.IsMain DESC, vi.UploadedAt DESC LIMIT 1) AS VenueImage
       FROM WaitingList w
       JOIN AppUser u ON w.CustomerId = u.UserId
       JOIN Court c ON w.CourtId = c.CourtId
@@ -702,9 +708,10 @@ const getOpenMatches = async (req, res) => {
         LIMIT 1
       ) match_booking ON TRUE
       WHERE w.Status = 'Waiting' AND w.PlayDate >= CURRENT_DATE
-      ORDER BY w.PlayDate ASC, w.StartTime ASC LIMIT 5
+      ORDER BY w.PlayDate ASC, w.StartTime ASC
+      ${hasLimit ? "LIMIT $1" : ""}
     `;
-    const result = await pool.query(query);
+    const result = await pool.query(query, hasLimit ? [requestedLimit] : []);
     res.json({
       message: "Lấy danh sách giao lưu thành công",
       matches: result.rows,

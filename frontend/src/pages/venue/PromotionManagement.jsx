@@ -35,7 +35,7 @@ const PromotionManagement = () => {
           <select
             value={selectedVenueId}
             onChange={(e) => setSelectedVenueId(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:outline-none shadow-sm"
+            className="bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:outline-none shadow-sm dark:bg-white/5 dark:border-white/10 dark:text-white"
           >
             {venues.map((v) => (
               <option key={v.venueid} value={v.venueid}>
@@ -53,13 +53,13 @@ const PromotionManagement = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden dark:bg-white/5 dark:border-white/10">
         {isLoading ? (
           <div className="p-8 text-center text-slate-500">Đang tải...</div>
         ) : promotions.length > 0 ? (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
+              <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500 dark:bg-white/5 dark:border-white/10 dark:text-slate-400">
                 <th className="p-4 font-bold">Chương trình KM</th>
                 <th className="p-4 font-bold">Mức giảm</th>
                 <th className="p-4 font-bold">Thời hạn</th>
@@ -71,9 +71,9 @@ const PromotionManagement = () => {
               {promotions.map((p) => (
                 <tr
                   key={p.promotionid}
-                  className="border-b border-slate-100 hover:bg-slate-50"
+                  className="border-b border-slate-100 hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5"
                 >
-                  <td className="p-4 font-bold text-slate-900">
+                  <td className="p-4 font-bold text-slate-900 dark:text-white">
                     <Tag className="w-4 h-4 text-primary inline mr-2" />
                     {p.promotionname}
                   </td>
